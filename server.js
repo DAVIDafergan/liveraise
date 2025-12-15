@@ -1,19 +1,26 @@
 import express from 'express';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// תיקון נתיבים
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// השתמש ב־PORT שמגיע מ־Railway
+// קריטי ל-Railway: שימוש בפורט מהסביבה והאזנה לכל הכתובות
 const port = process.env.PORT || 3000;
+const host = '0.0.0.0'; // <--- השורה הזו היא הקסם שחסר לך
 
-// הגדרת תיקיית dist כסטטית
-app.use(express.static(path.join(process.cwd(), 'dist')));
+const distPath = path.join(__dirname, 'dist');
 
-// כל הבקשות יחזירו index.html
+app.use(express.static(distPath));
+
 app.get('*', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+// שינוי קריטי בפקודה למטה: הוספת host
+app.listen(port, host, () => {
+  console.log(`Server is running on http://${host}:${port}`);
 });
