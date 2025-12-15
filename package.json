@@ -1,7 +1,7 @@
 {
-  "name": "liveraise-app",
+  "name": "liveraise---מערכת-מסך-רתימה",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,8 +20,8 @@
     "@vitejs/plugin-react": "^5.0.0",
     "@types/node": "^22.14.0",
     "typescript": "~5.8.2",
-    "mongoose": "^8.4.1", <--- הוסף את השורה הזו
-    "cors": "^2.8.5" <--- הוסף את השורה הזו (לצורך API)
+    "mongoose": "^8.4.1",
+    "cors": "^2.8.5"
   },
   "engines": {
     "node": ">=18.0.0"
