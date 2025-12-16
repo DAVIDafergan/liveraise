@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { broadcastService } from '../services/broadcastService';
-import { Campaign, Donation, EventType } from '../types';
+import { Campaign, Donation } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import DonationCard from '../components/DonationCard';
 import HeroDonation from '../components/HeroDonation';
@@ -8,18 +7,17 @@ import AnimatedCounter from '../components/AnimatedCounter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Award, TrendingUp, Play, Volume2 } from 'lucide-react';
 
-// Initial Mock Data with Default Donation Methods
 const INITIAL_CAMPAIGN: Campaign = {
   id: 'cmp_1',
-  name: 'בונים עתיד ביחד',
-  subTitle: 'ערב התרמה שנתי 2025',
-  targetAmount: 5000000,
-  currentAmount: 1245000,
+  name: 'טוען נתונים...',
+  subTitle: 'מתחבר למסד הנתונים',
+  targetAmount: 0,
+  currentAmount: 0,
   currency: '₪',
   donationMethods: {
-    qrCodeUrl: 'https://picsum.photos/300/300?grayscale',
-    qrLabel: 'סרוק לתרומה ב-Bit',
-    bottomText: 'להעברה בנקאית:\nבנק 12 | סניף 345 | ח-ן 123456'
+    qrCodeUrl: '',
+    qrLabel: '',
+    bottomText: ''
   },
   displaySettings: {
     scale: 1.0
@@ -34,75 +32,66 @@ const LiveScreen: React.FC = () => {
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastDonationIdRef = useRef<string | null>(null);
 
-  // Load Settings from LocalStorage
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('liveraise_display_settings');
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
+  // פונקציה מרכזית למשיכת נתונים מה-API
+  const fetchLiveUpdates = async () => {
+    try {
+      const response = await fetch('/api/data');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+
+      // 1. עדכון הגדרות קמפיין
+      if (data.campaign) {
         setCampaign(prev => ({
           ...prev,
-          displaySettings: {
-            ...prev.displaySettings,
-            scale: parsed.scale || 1.0
-          }
+          ...data.campaign,
+          displaySettings: data.campaign.displaySettings || prev.displaySettings
         }));
-      } catch (e) {
-        console.error("Failed to parse saved settings", e);
       }
-    }
-  }, []);
 
-  // Apply scaling
+      // 2. בדיקה אם יש תרומה חדשה (בשביל ה-HeroDonation והסאונד)
+      if (data.donations && data.donations.length > 0) {
+        const latestDonation = data.donations[0];
+        
+        // אם ה-ID של התרומה האחרונה שונה ממה ששמור אצלנו - זו תרומה חדשה!
+        if (lastDonationIdRef.current !== null && latestDonation._id !== lastDonationIdRef.current) {
+          handleNewDonation(latestDonation);
+        }
+        
+        lastDonationIdRef.current = latestDonation._id;
+        setDonations(data.donations);
+      }
+    } catch (error) {
+      console.error("Failed to sync with database:", error);
+    }
+  };
+
+  // אתחול ראשוני ו-Polling (רענון כל 4 שניות)
+  useEffect(() => {
+    fetchLiveUpdates(); // משיכה ראשונית מיד
+    
+    const interval = setInterval(fetchLiveUpdates, 4000); 
+    return () => clearInterval(interval);
+  }, [isAudioReady]);
+
+  // Apply scaling (Zoom)
   useEffect(() => {
     if (campaign.displaySettings?.scale) {
       const baseSize = 16;
       const newSize = baseSize * campaign.displaySettings.scale;
       document.documentElement.style.fontSize = `${newSize}px`;
-      localStorage.setItem('liveraise_display_settings', JSON.stringify({
-        scale: campaign.displaySettings.scale
-      }));
     }
-    return () => {
-      document.documentElement.style.fontSize = '';
-    };
   }, [campaign.displaySettings?.scale]);
 
+  // Audio setup
   useEffect(() => {
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'); 
     audioRef.current.volume = 0.5;
-
-    const unsubscribe = broadcastService.subscribe((message) => {
-      if (message.type === EventType.NEW_DONATION) {
-        handleNewDonation(message.payload);
-      } else if (message.type === EventType.RESET_CAMPAIGN) {
-         setCampaign(prev => ({...prev, currentAmount: 0}));
-         setDonations([]);
-         setHeroDonation(null);
-      } else if (message.type === EventType.UPDATE_SETTINGS) {
-         setCampaign(prev => ({
-           ...prev,
-           name: message.payload.name,
-           subTitle: message.payload.subTitle || prev.subTitle,
-           targetAmount: message.payload.targetAmount,
-           currentAmount: message.payload.currentAmount,
-           currency: message.payload.currency,
-           donationMethods: message.payload.donationMethods || prev.donationMethods,
-           displaySettings: message.payload.displaySettings || prev.displaySettings
-         }));
-      }
-    });
-
-    return () => unsubscribe();
-  }, [isAudioReady]);
+  }, []);
 
   const handleNewDonation = (donation: Donation) => {
-    setCampaign(prev => ({
-      ...prev,
-      currentAmount: prev.currentAmount + donation.amount
-    }));
-    setDonations(prev => [donation, ...prev]);
+    // הפעלת ה-Hero והסאונד
     setHeroDonation(donation);
 
     if (audioRef.current && isAudioReady) {
@@ -119,7 +108,7 @@ const LiveScreen: React.FC = () => {
         setIsAudioReady(true);
       }).catch(e => console.error("Could not unlock audio", e));
     } else {
-       setIsAudioReady(true);
+        setIsAudioReady(true);
     }
   };
 
@@ -148,7 +137,7 @@ const LiveScreen: React.FC = () => {
             <h2 className="mt-8 text-3xl font-bold text-white tracking-tight">לחץ כדי להפעיל את המסך</h2>
             <div className="mt-2 flex items-center gap-2 text-white/60">
               <Volume2 size={20} />
-              <span>נדרשת לחיצה כדי לאפשר שמע</span>
+              <span>נדרשת לחיצה כדי לאפשר שמע וחיבור חי</span>
             </div>
           </motion.button>
         )}
@@ -179,14 +168,6 @@ const LiveScreen: React.FC = () => {
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute top-[30%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-blue-900/30 via-cyan-900/30 to-slate-900/0 blur-[100px] mix-blend-screen"
         />
-
-         <motion.div 
-          animate={{ 
-            opacity: [0.1, 0.3, 0.1],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[40%] bg-gradient-to-t from-indigo-950/50 to-transparent blur-3xl"
-        />
       </div>
 
       <HeroDonation 
@@ -195,34 +176,23 @@ const LiveScreen: React.FC = () => {
         currency={campaign.currency}
       />
 
-      {/* Main Layout */}
       <div className="relative z-10 h-screen p-6 md:p-10 flex flex-col gap-6 lg:gap-8">
         
         {/* Header */}
         <header className="flex flex-col gap-6 shrink-0">
-          <div className="flex justify-between items-start">
-             <div className="space-y-2">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8 }}
-                >
+          <div className="flex justify-between items-start" dir="rtl">
+             <div className="space-y-2 text-right">
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                   <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight font-display drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
                     {campaign.name}
                   </h1>
                 </motion.div>
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                  className="text-white/70 text-xl md:text-2xl font-light tracking-wide"
-                >
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white/70 text-xl md:text-2xl font-light tracking-wide">
                   {campaign.subTitle}
                 </motion.p>
              </div>
              
-             {/* Animated Total Counter */}
-             <div className="text-right">
+             <div className="text-left">
                 <div className="text-7xl md:text-9xl font-black font-display tracking-tight leading-none drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
                   <AnimatedCounter 
                     value={campaign.currentAmount} 
@@ -230,7 +200,7 @@ const LiveScreen: React.FC = () => {
                   />
                 </div>
                 <motion.div 
-                  className="text-emerald-400 font-bold flex items-center justify-end gap-2 text-xl mt-2"
+                  className="text-emerald-400 font-bold flex items-center justify-start gap-2 text-xl mt-2"
                   animate={{ opacity: [0.7, 1, 0.7] }}
                   transition={{ duration: 3, repeat: Infinity }}
                 >
@@ -252,11 +222,8 @@ const LiveScreen: React.FC = () => {
           
           {/* Donations Ticker */}
           <div className="lg:col-span-8 bg-slate-900/30 rounded-[2rem] p-1 border border-white/10 flex flex-col backdrop-blur-md shadow-2xl overflow-hidden relative group">
-             {/* Glossy Header inside the container */}
-             <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/5 to-transparent pointer-events-none z-10" />
-             
              <div className="bg-slate-950/40 rounded-[1.8rem] h-full flex flex-col overflow-hidden relative">
-                <div className="flex items-center gap-3 p-6 pb-4 border-b border-white/5 shrink-0 z-10 bg-inherit shadow-lg">
+                <div className="flex items-center justify-end gap-3 p-6 pb-4 border-b border-white/5 shrink-0 z-10 bg-inherit" dir="rtl">
                     <div className="bg-yellow-500/20 p-2 rounded-full">
                       <Award className="text-yellow-400" size={24} />
                     </div>
@@ -277,7 +244,7 @@ const LiveScreen: React.FC = () => {
                     >
                         {loopedDonations.map((donation, index) => (
                           <DonationCard 
-                            key={`${donation.id}-${index}`} 
+                            key={`${donation._id || donation.id}-${index}`} 
                             donation={donation} 
                             currency={campaign.currency}
                           />
@@ -289,10 +256,8 @@ const LiveScreen: React.FC = () => {
           </div>
 
           {/* Sidebar / Info */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
+          <div className="lg:col-span-4 flex flex-col gap-6" dir="rtl">
             <div className="flex-grow bg-gradient-to-b from-indigo-900/30 to-slate-900/30 rounded-[2rem] p-6 border border-white/10 backdrop-blur-md flex flex-col justify-between shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-              
               <div>
                 <h3 className="text-xl font-bold mb-6 text-indigo-200 flex items-center gap-2">
                   <span className="w-1 h-6 bg-indigo-500 rounded-full inline-block"></span>
@@ -300,14 +265,11 @@ const LiveScreen: React.FC = () => {
                 </h3>
                 <div className="space-y-6">
                    {campaign.donationMethods?.qrCodeUrl && (
-                     <div className="bg-white/95 p-5 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] transform transition-transform hover:scale-[1.02] duration-500">
+                     <div className="bg-white/95 p-5 rounded-2xl shadow-xl transform transition-transform hover:scale-[1.02] duration-500">
                         <img 
                           src={campaign.donationMethods.qrCodeUrl} 
                           alt="QR Code" 
                           className="w-full h-auto rounded-xl mix-blend-multiply" 
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://placehold.co/300x300?text=QR+Code';
-                          }}
                         />
                         {campaign.donationMethods.qrLabel && (
                           <p className="text-slate-900 text-center font-bold mt-3 font-display text-lg">
@@ -328,7 +290,7 @@ const LiveScreen: React.FC = () => {
               </div>
               
               <div className="mt-8 pt-8 border-t border-white/5 text-center">
-                 <p className="text-white/30 text-xs uppercase tracking-widest">Powered by LiveRaise</p>
+                 <p className="text-white/30 text-xs uppercase tracking-widest">Powered by LiveRaise & MongoDB</p>
               </div>
             </div>
           </div>
