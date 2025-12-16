@@ -1,4 +1,3 @@
-cat > components/ProgressBar.tsx << 'EOF'
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
@@ -56,4 +55,3 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency, co
 };
 
 export default ProgressBar;
-EOF
