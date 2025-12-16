@@ -1,3 +1,4 @@
+cat > components/ProgressBar.tsx << 'EOF'
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
@@ -5,14 +6,13 @@ interface ProgressBarProps {
   current: number;
   target: number;
   currency: string;
-  color?: string; // הוספנו את זה כדי לתקן את השגיאה בבנייה
+  color?: string;
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency, color = '#10b981' }) => {
   const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
-    // הגנה מפני חילוק ב-0 וחישוב אחוזים תקין
     const safeTarget = target > 0 ? target : 1;
     const p = Math.min(100, Math.max(0, (current / safeTarget) * 100));
     setPercentage(p);
@@ -20,7 +20,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency, co
 
   return (
     <div className="w-full space-y-3">
-      {/* טקסטים עליונים */}
       <div className="flex justify-between items-end text-white px-1">
         <div className="flex items-center gap-3">
            <div className="text-3xl font-bold bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/5 tabular-nums">
@@ -36,31 +35,18 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency, co
         </div>
       </div>
       
-      {/* Outer Container with Glow */}
       <div className="relative p-1 bg-slate-900/50 rounded-full border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.3)] backdrop-blur-sm">
         <div className="relative h-10 bg-slate-800 rounded-full overflow-hidden shadow-inner">
-          
-          {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:8px_8px]"></div>
-
-          {/* Fill Bar */}
           <motion.div 
             className="absolute top-0 right-0 h-full rounded-full relative overflow-hidden"
-            style={{ backgroundColor: color }} // שימוש בצבע המותאם אישית
+            style={{ backgroundColor: color }}
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
             transition={{ duration: 1.5, type: "spring", bounce: 0, damping: 20 }}
           >
-              {/* גרדינט עדין מעל הצבע */}
-              <div className="absolute inset-0 bg-gradient-to-l from-black/10 via-transparent to-white/20"></div>
-
-              {/* Glow at the tip */}
               <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-[140%] bg-white/50 blur-md"></div>
-              
-              {/* Shimmer effect */}
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_2.5s_infinite]"></div>
-              
-              {/* Inner Highlight */}
               <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-white/30 to-transparent opacity-50"></div>
           </motion.div>
         </div>
@@ -70,3 +56,4 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency, co
 };
 
 export default ProgressBar;
+EOF
