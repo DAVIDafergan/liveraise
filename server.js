@@ -1,67 +1,93 @@
 import express from 'express';
 import path from 'path';
-import fs from 'fs';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
-import { connectDB, Donation, Campaign } from './db.js';
+import { connectDB, User, Campaign, Donation } from './db.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 8080;
-const host = '0.0.0.0'; 
-const distPath = path.join(__dirname, 'dist');
 
 connectDB();
-
 app.use(cors());
 app.use(express.json());
 
-// --- API Endpoints ---
+// --- מערכת אימות (Auth) ---
 
-// 1. קבלת כל הנתונים (קמפיין ותרומות)
-app.get('/api/data', async (req, res) => {
-    try {
-        const donations = await Donation.find().sort({ timestamp: -1 }).limit(50);
-        const campaign = await Campaign.findOne({});
-        res.json({ campaign, donations });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch data' });
-    }
+// הרשמה
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = new User({ username, password });
+    await user.save();
+    
+    // יצירת קמפיין ברירת מחדל למשתמש החדש
+    const campaign = new Campaign({
+      owner: user._id,
+      slug: username.toLowerCase(), // ה-slug יהיה שם המשתמש
+      name: `הקמפיין של ${username}`,
+      targetAmount: 100000
+    });
+    await campaign.save();
+    
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: "שם משתמש כבר קיים" });
+  }
 });
 
-// 2. שמירת תרומה חדשה ועדכון הסכום בקמפיין
-app.post('/api/donations', async (req, res) => {
-    try {
-        const { firstName, lastName, amount, dedication } = req.body;
-        const newDonation = new Donation({ firstName, lastName, amount, dedication });
-        await newDonation.save();
-
-        const campaign = await Campaign.findOneAndUpdate({}, { $inc: { currentAmount: amount } }, { new: true });
-        res.status(201).json({ donation: newDonation, campaignUpdate: campaign });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to save donation' });
-    }
+// כניסה
+app.post('/api/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username, password });
+  if (user) {
+    const campaign = await Campaign.findOne({ owner: user._id });
+    res.json({ userId: user._id, slug: campaign.slug, username: user.username });
+  } else {
+    res.status(401).json({ error: "פרטים שגויים" });
+  }
 });
 
-// 3. עדכון הגדרות קמפיין (כותרות, יעד, דרכי תרומה)
-app.patch('/api/campaign', async (req, res) => {
-    try {
-        const campaign = await Campaign.findOneAndUpdate({}, req.body, { new: true, upsert: true });
-        res.json(campaign);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to update campaign' });
-    }
+// --- API לניהול קמפיין ---
+
+// קבלת נתונים לפי SLUG (למסך הלייב ולדשבורד)
+app.get('/api/data/:slug', async (req, res) => {
+  try {
+    const campaign = await Campaign.findOne({ slug: req.params.slug });
+    if (!campaign) return res.status(404).json({ error: "קמפיין לא נמצא" });
+    
+    const donations = await Donation.find({ campaignId: campaign._id }).sort({ timestamp: -1 }).limit(50);
+    res.json({ campaign, donations });
+  } catch (err) {
+    res.status(500).json({ error: "שגיאת שרת" });
+  }
 });
 
-// --- הגשת קבצים סטטיים ---
-app.use(express.static(distPath));
-app.get('*', (req, res) => {
-    const indexPath = path.join(distPath, 'index.html');
-    fs.existsSync(indexPath) ? res.sendFile(indexPath) : res.status(404).send('Not Found');
+// הוספת תרומה לקמפיין ספציפי
+app.post('/api/donations/:campaignId', async (req, res) => {
+  try {
+    const { firstName, lastName, amount, dedication } = req.body;
+    const donation = new Donation({ campaignId: req.params.campaignId, firstName, lastName, amount, dedication });
+    await donation.save();
+    
+    const campaign = await Campaign.findByIdAndUpdate(req.params.campaignId, { $inc: { currentAmount: amount } }, { new: true });
+    res.json({ donation, campaignUpdate: campaign });
+  } catch (err) {
+    res.status(500).json({ error: "שגיאה בשמירת התרומה" });
+  }
 });
 
-app.listen(port, host, () => {
-    console.log(`✅ Server running on http://${host}:${port}`);
+// עדכון הגדרות קמפיין
+app.patch('/api/campaign/:id', async (req, res) => {
+  try {
+    const campaign = await Campaign.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(campaign);
+  } catch (err) {
+    res.status(500).json({ error: "שגיאה בעדכון" });
+  }
 });
+
+app.use(express.static(path.join(__dirname, 'dist')));
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
+
+app.listen(port, '0.0.0.0', () => console.log(`Server on ${port}`));

@@ -1,80 +1,50 @@
 import mongoose from 'mongoose';
 
-// ------------------------------------
-// 1. הגדרת הסכמות (Schemas)
-// ------------------------------------
-
-// סכמה לתרומה
-const DonationSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  amount: { type: Number, required: true, min: 1 },
-  dedication: { type: String, default: '' },
-  timestamp: { type: Date, default: Date.now },
+// סכמה למשתמש
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // בייצור כדאי להשתמש ב-bcrypt
 });
 
-// סכמה לקמפיין
+// סכמה לקמפיין - מקושר למשתמש
 const CampaignSchema = new mongoose.Schema({
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  slug: { type: String, required: true, unique: true }, // מזהה ייחודי לכתובת המסך
   name: { type: String, required: true },
   subTitle: { type: String, default: '' },
   targetAmount: { type: Number, default: 0 },
   currentAmount: { type: Number, default: 0 },
-  currency: { type: String, default: 'ILS' },
+  currency: { type: String, default: '₪' },
   donationMethods: {
     qrCodeUrl: String,
     qrLabel: String,
     bottomText: String,
   },
-  displaySettings: {
-    scale: { type: Number, default: 1.0 },
-  },
+  displaySettings: { scale: { type: Number, default: 1.0 } },
 });
 
-// ------------------------------------
-// 2. הגדרת המודלים
-// ------------------------------------
-const Donation = mongoose.model('Donation', DonationSchema);
-const Campaign = mongoose.model('Campaign', CampaignSchema);
+// סכמה לתרומה - מקושרת לקמפיין
+const DonationSchema = new mongoose.Schema({
+  campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  amount: { type: Number, required: true },
+  dedication: { type: String, default: '' },
+  timestamp: { type: Date, default: Date.now },
+});
 
-// ------------------------------------
-// 3. פונקציית החיבור ל-DB
-// ------------------------------------
+const User = mongoose.model('User', UserSchema);
+const Campaign = mongoose.model('Campaign', CampaignSchema);
+const Donation = mongoose.model('Donation', DonationSchema);
+
 async function connectDB() {
   const url = process.env.MONGO_URL;
-
-  if (!url) {
-    console.error('CRITICAL ERROR: MONGO_URL not found in environment variables. Database connection skipped.');
-    return;
-  }
-
   try {
     await mongoose.connect(url);
     console.log('✅ MongoDB connected successfully!');
-    
-    // יצירת קמפיין ברירת מחדל אם אין
-    await initializeDefaultCampaign();
-
   } catch (err) {
-    console.error('❌ Could not connect to MongoDB:', err.message);
+    console.error('❌ MongoDB connection error:', err.message);
   }
 }
 
-// פונקציה ליצירת קמפיין ברירת מחדל
-async function initializeDefaultCampaign() {
-  const existingCampaign = await Campaign.findOne({});
-  if (!existingCampaign) {
-    const defaultCampaign = new Campaign({
-      name: 'קמפיין התרמה חי',
-      subTitle: 'עזרו לנו להגיע ליעד!',
-      targetAmount: 100000,
-      currentAmount: 0,
-    });
-    await defaultCampaign.save();
-    console.log('✨ Default campaign created successfully.');
-  }
-}
-
-// ------------------------------------
-// 4. ייצוא
-// ------------------------------------
-export { connectDB, Donation, Campaign };
+export { connectDB, User, Campaign, Donation };
