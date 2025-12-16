@@ -5,18 +5,22 @@ interface ProgressBarProps {
   current: number;
   target: number;
   currency: string;
+  color?: string; // הוספנו את זה כדי לתקן את השגיאה בבנייה
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency, color = '#10b981' }) => {
   const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
-    const p = Math.min(100, Math.max(0, (current / target) * 100));
+    // הגנה מפני חילוק ב-0 וחישוב אחוזים תקין
+    const safeTarget = target > 0 ? target : 1;
+    const p = Math.min(100, Math.max(0, (current / safeTarget) * 100));
     setPercentage(p);
   }, [current, target]);
 
   return (
     <div className="w-full space-y-3">
+      {/* טקסטים עליונים */}
       <div className="flex justify-between items-end text-white px-1">
         <div className="flex items-center gap-3">
            <div className="text-3xl font-bold bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/5 tabular-nums">
@@ -41,19 +45,23 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, target, currency }) 
 
           {/* Fill Bar */}
           <motion.div 
-            className="absolute top-0 right-0 h-full bg-gradient-to-l from-yellow-400 via-orange-500 to-red-600 rounded-full relative"
+            className="absolute top-0 right-0 h-full rounded-full relative overflow-hidden"
+            style={{ backgroundColor: color }} // שימוש בצבע המותאם אישית
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
             transition={{ duration: 1.5, type: "spring", bounce: 0, damping: 20 }}
           >
-             {/* Glow at the tip */}
-             <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-[140%] bg-white/50 blur-md"></div>
-             
-             {/* Shimmer effect */}
-             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_2.5s_infinite]"></div>
-             
-             {/* Inner Highlight */}
-             <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-white/30 to-transparent opacity-50"></div>
+              {/* גרדינט עדין מעל הצבע */}
+              <div className="absolute inset-0 bg-gradient-to-l from-black/10 via-transparent to-white/20"></div>
+
+              {/* Glow at the tip */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-[140%] bg-white/50 blur-md"></div>
+              
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_2.5s_infinite]"></div>
+              
+              {/* Inner Highlight */}
+              <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-white/30 to-transparent opacity-50"></div>
           </motion.div>
         </div>
       </div>

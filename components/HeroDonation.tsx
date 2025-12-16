@@ -43,6 +43,7 @@ const HeroDonation: React.FC<HeroDonationProps> = ({ donation, onComplete, curre
       
       frame();
 
+      // סגירה אוטומטית אחרי 10 שניות
       const timer = setTimeout(() => {
         onComplete();
       }, 10000);
