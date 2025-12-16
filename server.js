@@ -86,6 +86,29 @@ app.patch('/api/campaign/:id', async (req, res) => {
     res.status(500).json({ error: "שגיאה בעדכון" });
   }
 });
+// מחיקת תרומה ועדכון הסכום בקמפיין
+app.delete('/api/donations/:donationId', async (req, res) => {
+  try {
+    const donation = await Donation.findById(req.params.donationId);
+    if (!donation) return res.status(404).json({ error: "תרומה לא נמצאה" });
+
+    const campaignId = donation.campaignId;
+    const amountToSubtract = donation.amount;
+
+    await Donation.findByIdAndDelete(req.params.donationId);
+    
+    // עדכון הסכום בקמפיין (חיסור)
+    const campaign = await Campaign.findByIdAndUpdate(
+      campaignId, 
+      { $inc: { currentAmount: -amountToSubtract } }, 
+      { new: true }
+    );
+
+    res.json({ success: true, campaignUpdate: campaign });
+  } catch (err) {
+    res.status(500).json({ error: "שגיאה במחיקה" });
+  }
+});
 
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
