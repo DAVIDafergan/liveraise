@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const CampaignSchema = new mongoose.Schema({
@@ -11,11 +12,17 @@ const CampaignSchema = new mongoose.Schema({
   name: { type: String, required: true },
   subTitle: { type: String, default: '' },
   targetAmount: { type: Number, default: 0 },
-  manualStartingAmount: { type: Number, default: 0 }, // כמה אספו עד עכשיו ידנית
-  currentAmount: { type: Number, default: 0 }, // תרומות מהמערכת
+  manualStartingAmount: { type: Number, default: 0 },
+  currentAmount: { type: Number, default: 0 },
   currency: { type: String, default: '₪' },
-  donationMethods: [{ // רשימת דרכי תרומה
-    methodType: String, // Bit, העברה, וכו'
+  
+  // --- הגדרות עיצוב ומיתוג ---
+  themeColor: { type: String, default: '#10b981' }, // צבע ראשי
+  logoUrl: { type: String, default: '' }, // לוגו (אופציונלי)
+  bannerUrl: { type: String, default: '' }, // באנר עליון (אופציונלי)
+  
+  donationMethods: [{
+    methodType: String,
     qrCodeUrl: String,
     label: String
   }],
@@ -38,9 +45,9 @@ const Donation = mongoose.model('Donation', DonationSchema);
 async function connectDB() {
   try {
     await mongoose.connect(process.env.MONGO_URL);
-    console.log('✅ MongoDB Connected');
+    console.log('✅ MongoDB Connected Successfully');
   } catch (err) {
-    console.error('❌ MongoDB Error:', err.message);
+    console.error('❌ MongoDB Connection Error:', err.message);
   }
 }
 
