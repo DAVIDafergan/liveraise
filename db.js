@@ -1,29 +1,27 @@
 import mongoose from 'mongoose';
 
-// סכמה למשתמש
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // בייצור כדאי להשתמש ב-bcrypt
+  password: { type: String, required: true },
 });
 
-// סכמה לקמפיין - מקושר למשתמש
 const CampaignSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  slug: { type: String, required: true, unique: true }, // מזהה ייחודי לכתובת המסך
+  slug: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   subTitle: { type: String, default: '' },
   targetAmount: { type: Number, default: 0 },
-  currentAmount: { type: Number, default: 0 },
+  manualStartingAmount: { type: Number, default: 0 }, // כמה אספו עד עכשיו ידנית
+  currentAmount: { type: Number, default: 0 }, // תרומות מהמערכת
   currency: { type: String, default: '₪' },
-  donationMethods: {
+  donationMethods: [{ // רשימת דרכי תרומה
+    methodType: String, // Bit, העברה, וכו'
     qrCodeUrl: String,
-    qrLabel: String,
-    bottomText: String,
-  },
+    label: String
+  }],
   displaySettings: { scale: { type: Number, default: 1.0 } },
 });
 
-// סכמה לתרומה - מקושרת לקמפיין
 const DonationSchema = new mongoose.Schema({
   campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
   firstName: { type: String, required: true },
@@ -38,12 +36,11 @@ const Campaign = mongoose.model('Campaign', CampaignSchema);
 const Donation = mongoose.model('Donation', DonationSchema);
 
 async function connectDB() {
-  const url = process.env.MONGO_URL;
   try {
-    await mongoose.connect(url);
-    console.log('✅ MongoDB connected successfully!');
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log('✅ MongoDB Connected');
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err.message);
+    console.error('❌ MongoDB Error:', err.message);
   }
 }
 
