@@ -16,14 +16,14 @@ const INITIAL_CAMPAIGN: any = {
   manualStartingAmount: 0,
   currentAmount: 0,
   currency: '₪',
-  donationMethods: [], // אתחול כמערך ריק לתמיכה בריבוי שיטות
+  donationMethods: [],
   displaySettings: {
     scale: 1.0
   }
 };
 
 const LiveScreen: React.FC = () => {
-  const { slug } = useParams<{ slug: string }>(); // משיכת ה-slug מהכתובת
+  const { slug } = useParams<{ slug: string }>(); 
   const [campaign, setCampaign] = useState<any>(INITIAL_CAMPAIGN);
   const [donations, setDonations] = useState<any[]>([]);
   const [heroDonation, setHeroDonation] = useState<any | null>(null);
@@ -31,14 +31,13 @@ const LiveScreen: React.FC = () => {
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastDonationIdRef = useRef<string | null>(null);
+  const prevDonationsCount = useRef<number>(0);
 
-  // חישובים לוגיים (מניעת NaN ושילוב סכום ידני)
+  // חישובים לוגיים למניעת NaN ושילוב סכום ידני
   const totalCollected = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
-  const target = campaign.targetAmount || 1; // מניעת חילוק ב-0
+  const target = campaign.targetAmount || 1; 
   const progressPercent = Math.min((totalCollected / target) * 100, 100);
 
-  // פונקציה מרכזית למשיכת נתונים מה-API לפי ה-slug
   const fetchLiveUpdates = async () => {
     try {
       if (!slug) return;
@@ -50,13 +49,16 @@ const LiveScreen: React.FC = () => {
         setCampaign(data.campaign);
       }
 
-      if (data.donations && data.donations.length > 0) {
-        const latestDonation = data.donations[0];
-        // זיהוי תרומה חדשה להפעלת Hero וסאונד
-        if (lastDonationIdRef.current !== null && latestDonation._id !== lastDonationIdRef.current) {
+      if (data.donations) {
+        const currentCount = data.donations.length;
+
+        // מנגנון התראה: קופץ רק אם מספר התרומות גדל (ולא קטן בגלל מחיקה)
+        if (currentCount > prevDonationsCount.current && prevDonationsCount.current !== 0) {
+          const latestDonation = data.donations[0];
           handleNewDonation(latestDonation);
         }
-        lastDonationIdRef.current = latestDonation._id;
+        
+        prevDonationsCount.current = currentCount;
         setDonations(data.donations);
       }
     } catch (error) {
@@ -85,10 +87,17 @@ const LiveScreen: React.FC = () => {
 
   const handleNewDonation = (donation: Donation) => {
     setHeroDonation(donation);
+
+    // השמעת סאונד
     if (audioRef.current && isAudioReady) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch(e => console.warn("Audio play failed:", e));
     }
+
+    // העלמת האנימציה (HeroDonation) אוטומטית אחרי 10 שניות
+    setTimeout(() => {
+      setHeroDonation(null);
+    }, 10000);
   };
 
   const handleStartInteraction = () => {
@@ -149,6 +158,7 @@ const LiveScreen: React.FC = () => {
         />
       </div>
 
+      {/* אנימציית תרומה חדשה (נעלמת אוטומטית אחרי 10 שניות) */}
       <HeroDonation donation={heroDonation} onComplete={() => setHeroDonation(null)} currency={campaign.currency} />
 
       <div className="relative z-10 h-screen p-6 md:p-10 flex flex-col gap-6 lg:gap-8">
@@ -235,7 +245,10 @@ const LiveScreen: React.FC = () => {
                 </div>
               </div>
               <div className="mt-8 pt-8 border-t border-white/5 text-center">
-                 <p className="text-white/30 text-xs uppercase tracking-widest">Powered by LiveRaise & MongoDB</p>
+                 {/* קרדיט מעודכן */}
+                 <p className="text-white/50 text-sm font-bold tracking-wide">
+                    פותח ע"י DA ניהול פרויקטים ויזמות
+                 </p>
               </div>
             </div>
           </div>
