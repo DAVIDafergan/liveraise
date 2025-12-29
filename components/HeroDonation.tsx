@@ -107,7 +107,7 @@ const HeroDonation: React.FC<HeroDonationProps> = ({ donation, onComplete, curre
                       </div>
 
                       <h3 className="text-3xl md:text-4xl text-white font-bold mb-2 font-display tracking-tight">
-                        {donation.firstName} {donation.lastName}
+                        {donation.fullName}
                       </h3>
                       
                       <div className="flex items-center gap-2 text-emerald-400 font-medium bg-emerald-500/10 px-4 py-1 rounded-full mb-8 border border-emerald-500/20">

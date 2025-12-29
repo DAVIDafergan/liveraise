@@ -8,7 +8,7 @@ const AdminDashboard: React.FC = () => {
   const [user] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
   const [campaign, setCampaign] = useState<any>(null);
   const [donations, setDonations] = useState<any[]>([]);
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', amount: '', dedication: '' });
+  const [formData, setFormData] = useState({ fullName: '', amount: '', dedication: '' });
 
   const fetchData = async () => {
     if (!user.slug) { navigate('/'); return; }
@@ -42,7 +42,7 @@ const AdminDashboard: React.FC = () => {
       body: JSON.stringify({ ...formData, amount: Number(formData.amount) })
     });
     if (res.ok) {
-      setFormData({ firstName: '', lastName: '', amount: '', dedication: '' });
+      setFormData({ fullName: '', amount: '', dedication: '' });
       fetchData();
     }
     setLoading(false);
@@ -51,7 +51,7 @@ const AdminDashboard: React.FC = () => {
   const exportToCSV = async () => {
     const res = await fetch(`/api/export/${user.slug}`);
     const data = await res.json();
-    const csvContent = "data:text/csv;charset=utf-8," + "Name,Amount,Dedication,Date\n" + data.map((d: any) => `${d.firstName} ${d.lastName},${d.amount},${d.dedication},${new Date(d.timestamp).toLocaleDateString()}`).join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," + "Name,Amount,Dedication,Date\n" + data.map((d: any) => `${d.fullName},${d.amount},${d.dedication},${new Date(d.timestamp).toLocaleDateString()}`).join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
     link.download = `donations_${user.slug}.csv`;
@@ -120,6 +120,36 @@ const AdminDashboard: React.FC = () => {
                </div>
             </div>
 
+            {/* הגדרות תצוגה ורזולוציה */}
+            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-6">
+              <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Layout size={16}/> הגדרות רזולוציה ומסך</h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs font-bold">קנה מידה (Zoom): {campaign.displaySettings?.scale || 1.0}x</label>
+                    <span className="text-xs text-slate-400">מתאים למסכי ענק / לדים</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0.5" 
+                    max="3.0" 
+                    step="0.1" 
+                    className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer"
+                    value={campaign.displaySettings?.scale || 1.0} 
+                    onChange={e => setCampaign({
+                      ...campaign, 
+                      displaySettings: { ...campaign.displaySettings, scale: Number(e.target.value) }
+                    })} 
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-1" dir="ltr">
+                    <span>0.5x</span>
+                    <span>1.0x (Default)</span>
+                    <span>3.0x</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* ניהול QR */}
             <h3 className="font-bold text-sm mb-2 flex gap-2"><QrCode size={16}/> דרכי תרומה</h3>
             <div className="space-y-2 mb-6">
@@ -151,7 +181,7 @@ const AdminDashboard: React.FC = () => {
                 <tbody>
                   {donations.map((d) => (
                     <tr key={d._id} className="border-b">
-                      <td className="p-2">{d.firstName} {d.lastName}</td>
+                      <td className="p-2">{d.fullName}</td>
                       <td className="p-2 font-bold text-emerald-600">{d.amount}</td>
                       <td className="p-2"><button onClick={async()=>{ if(confirm('למחוק?')) { await fetch(`/api/donations/${d._id}`, {method:'DELETE'}); fetchData(); }}} className="text-red-300 hover:text-red-500"><Trash2 size={16}/></button></td>
                     </tr>
@@ -170,8 +200,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white p-6 rounded-2xl shadow-sm border">
              <h2 className="font-bold mb-4 flex gap-2"><Send className="text-emerald-500"/> הוספת תרומה</h2>
              <form onSubmit={handleAddDonation} className="space-y-3">
-               <input placeholder="שם" className="w-full border p-3 rounded-xl" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} required />
-               <input placeholder="משפחה" className="w-full border p-3 rounded-xl" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} required />
+               <input placeholder="שם מלא" className="w-full border p-3 rounded-xl" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} required />
                <input type="number" placeholder="סכום" className="w-full border p-3 rounded-xl font-bold" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required />
                <textarea placeholder="הקדשה" className="w-full border p-3 rounded-xl" value={formData.dedication} onChange={e => setFormData({...formData, dedication: e.target.value})} />
                <button disabled={loading} className="w-full bg-emerald-500 text-white p-3 rounded-xl font-bold shadow-lg shadow-emerald-100">שגר למסך</button>

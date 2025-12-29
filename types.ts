@@ -1,7 +1,6 @@
 export interface Donation {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string; // התיקון כאן: fullName במקום firstName ו-lastName
   amount: number;
   dedication?: string; // The message/dedication
   timestamp: number;

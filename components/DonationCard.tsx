@@ -28,7 +28,7 @@ const DonationCard: React.FC<DonationCardProps> = ({ donation, currency }) => {
         
         <div className="flex-grow min-w-0">
           <h3 className="text-white font-bold text-xl truncate font-display tracking-tight group-hover:text-indigo-200 transition-colors">
-            {donation.firstName} {donation.lastName}
+            {donation.fullName}
           </h3>
           {donation.dedication && (
             <p className="text-white/60 text-sm truncate pr-3 mt-0.5 border-r-2 border-indigo-500/30 mr-1 italic">

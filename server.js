@@ -69,8 +69,8 @@ app.get('/api/export/:slug', async (req, res) => {
 
 app.post('/api/donations/:campaignId', async (req, res) => {
   try {
-    const { firstName, lastName, amount, dedication } = req.body;
-    const donation = new Donation({ campaignId: req.params.campaignId, firstName, lastName, amount, dedication });
+    const { fullName, amount, dedication } = req.body; // התיקון כאן: fullName במקום firstName ו-lastName
+    const donation = new Donation({ campaignId: req.params.campaignId, fullName, amount, dedication }); // התיקון כאן
     await donation.save();
     const campaign = await Campaign.findByIdAndUpdate(req.params.campaignId, { $inc: { currentAmount: amount } }, { new: true });
     res.json({ donation, campaignUpdate: campaign });

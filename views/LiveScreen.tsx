@@ -1,132 +1,167 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { TrendingUp, Play, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Target, Heart } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
-import AnimatedCounter from '../components/AnimatedCounter';
-import ProgressBar from '../components/ProgressBar';
-import DonationCard from '../components/DonationCard';
-import HeroDonation from '../components/HeroDonation';
-
-const INITIAL_CAMPAIGN = { name: 'טוען...', targetAmount: 1, currentAmount: 0, manualStartingAmount: 0, currency: '₪', themeColor: '#10b981', logoUrl: '', bannerUrl: '' };
 
 const LiveScreen: React.FC = () => {
-  const { slug } = useParams();
-  const [campaign, setCampaign] = useState<any>(INITIAL_CAMPAIGN);
-  const [donations, setDonations] = useState<any[]>([]);
-  const [heroDonation, setHeroDonation] = useState<any>(null);
-  const [isAudioReady, setIsAudioReady] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const prevCount = useRef(0);
+  const { slug } = useParams<{ slug: string }>();
   const { width, height } = useWindowSize();
+  const [data, setData] = useState<any>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  const total = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
-  const progress = Math.min((total / (campaign.targetAmount || 1)) * 100, 100);
-
-  const fetchUpdates = async () => {
+  const fetchStats = async () => {
     try {
-      if (!slug) return;
       const res = await fetch(`/api/data/${slug}`);
-      const data = await res.json();
-      if (data.campaign) setCampaign(data.campaign);
-      if (data.donations) {
-        if (data.donations.length > prevCount.current && prevCount.current !== 0) {
-          handleNewDonation(data.donations[0]);
-        }
-        prevCount.current = data.donations.length;
-        setDonations(data.donations);
+      const json = await res.json();
+      
+      if (data && json.campaign.currentAmount > data.campaign.currentAmount) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
       }
-    } catch (e) {}
-  };
-
-  useEffect(() => {
-    fetchUpdates();
-    const interval = setInterval(fetchUpdates, 4000);
-    return () => clearInterval(interval);
-  }, [slug]);
-
-  useEffect(() => {
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
-    audioRef.current.volume = 0.5;
-  }, []);
-
-  const handleNewDonation = (d: any) => {
-    setHeroDonation(d);
-    if (audioRef.current && isAudioReady) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
+      setData(json);
+    } catch (err) {
+      console.error("Error fetching data:", err);
     }
-    setTimeout(() => setHeroDonation(null), 10000);
   };
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
+  }, [slug, data]);
+
+  if (!data) return <div className="h-screen bg-slate-900 flex items-center justify-center text-white">טוען נתונים...</div>;
+
+  const { campaign, donations } = data;
+  const totalRaised = campaign.currentAmount + campaign.manualStartingAmount;
+  const progress = Math.min((totalRaised / campaign.targetAmount) * 100, 100);
+
+  // מציג את 5 התרומות האחרונות כדי למנוע גלילה
+  const latestDonations = donations.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white overflow-hidden relative font-sans flex flex-col" dir="rtl">
-      {/* קונפטי בניצחון */}
-      {progress >= 100 && <Confetti width={width} height={height} numberOfPieces={200} recycle={true} />}
-      
-      {/* באנר עליון (אם קיים) */}
+    <div 
+      className="h-screen w-full bg-slate-950 text-white overflow-hidden flex flex-col font-sans" 
+      dir="rtl" 
+      style={{ 
+        '--primary': campaign.themeColor,
+        // התיקון המרכזי: שליטה ברזולוציה ובגודל התצוגה מרחוק
+        zoom: campaign.displaySettings?.scale || 1.0 
+      } as any}
+    >
+      {showConfetti && <Confetti width={width} height={height} colors={[campaign.themeColor, '#ffffff']} />}
+
       {campaign.bannerUrl && (
-        <div className="w-full h-32 md:h-48 shrink-0 relative">
-           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900 z-10"></div>
-           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+        <div className="w-full h-32 overflow-hidden shadow-2xl">
+          <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
         </div>
       )}
 
-      <AnimatePresence>
-        {!isAudioReady && (
-          <motion.button onClick={() => setIsAudioReady(true)} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-900/90 flex flex-col items-center justify-center">
-            <div className="bg-emerald-500 p-8 rounded-full shadow-2xl mb-4"><Play size={48} fill="white"/></div>
-            <h2 className="text-3xl font-bold">לחץ להפעלת מסך</h2>
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <div className="flex-1 max-w-7xl mx-auto w-full p-8 flex flex-col gap-8">
+        
+        <div className="flex justify-between items-end border-b border-white/10 pb-6">
+          <div>
+            <h1 className="text-5xl font-black mb-2">{campaign.name}</h1>
+            <p className="text-2xl opacity-60 italic">{campaign.subTitle}</p>
+          </div>
+          <div className="text-left">
+            <p className="text-xl opacity-60">יעד הגיוס: {campaign.targetAmount.toLocaleString()} {campaign.currency}</p>
+          </div>
+        </div>
 
-      <HeroDonation donation={heroDonation} onComplete={() => setHeroDonation(null)} currency={campaign.currency} />
-
-      <div className={`relative z-10 p-8 flex flex-col gap-6 flex-grow min-h-0 ${!campaign.bannerUrl ? 'pt-12' : ''}`}>
-        <header className="flex flex-col gap-6 shrink-0">
-          <div className="flex justify-between items-start">
-             <div className="space-y-2 flex items-center gap-6">
-                {campaign.logoUrl && <img src={campaign.logoUrl} alt="Logo" className="h-24 w-24 object-contain bg-white/10 rounded-2xl p-2 backdrop-blur-sm" />}
-                <div>
-                    <h1 className="text-5xl md:text-6xl font-black tracking-tight" style={{ color: campaign.themeColor }}>{campaign.name}</h1>
-                    <p className="text-2xl opacity-70">{campaign.subTitle}</p>
-                </div>
+        <div className="bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="flex justify-between items-center mb-4">
+             <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-white/10 text-white"><Target size={32}/></div>
+                <span className="text-3xl font-bold">התקדמות הקמפיין</span>
              </div>
-             <div className="text-left">
-                <div className="text-8xl md:text-9xl font-black"><AnimatedCounter value={total} currency={campaign.currency} /></div>
-                <div className="text-emerald-400 font-bold flex items-center justify-end gap-2 text-2xl"><TrendingUp /> נאסף בהצלחה</div>
+             <div className="text-6xl font-black" style={{ color: campaign.themeColor }}>
+                {totalRaised.toLocaleString()} {campaign.currency}
              </div>
           </div>
-          <ProgressBar current={total} target={campaign.targetAmount} currency={campaign.currency} color={campaign.themeColor} />
-        </header>
-
-        <div className="flex-grow grid grid-cols-12 gap-8 min-h-0">
-          <div className="col-span-8 bg-slate-800/50 rounded-3xl p-6 border border-white/10 relative overflow-hidden flex flex-col">
-             <h2 className="text-2xl font-bold mb-4 flex gap-2"><Award className="text-yellow-400"/> תרומות אחרונות</h2>
-             <div className="flex-grow overflow-hidden relative">
-               <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-slate-800/80 via-transparent to-slate-800/80"></div>
-               <div className="animate-scroll-vertical space-y-3 px-4" style={{ '--scroll-duration': '40s' } as any}>
-                  {[...donations, ...donations, ...donations].map((d, i) => (
-                    <DonationCard key={i} donation={d} currency={campaign.currency} />
-                  ))}
-               </div>
-             </div>
+          <div className="w-full h-12 bg-white/10 rounded-full overflow-hidden border-4 border-white/5 p-1">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="h-full rounded-full shadow-lg relative"
+              style={{ backgroundColor: campaign.themeColor }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-pulse" />
+            </motion.div>
           </div>
+          <div className="flex justify-between mt-4 text-2xl font-bold opacity-80">
+            <span>{progress.toFixed(1)}% מהיעד</span>
+            <span>{campaign.targetAmount.toLocaleString()} {campaign.currency}</span>
+          </div>
+        </div>
 
-          <div className="col-span-4 bg-slate-800/50 rounded-3xl p-6 border border-white/10 flex flex-col">
-            <h3 className="text-xl font-bold mb-6" style={{ color: campaign.themeColor }}>דרכי תרומה</h3>
-            <div className="space-y-4 overflow-y-auto flex-grow custom-scrollbar pr-2">
-               {campaign.donationMethods?.map((m: any, i: number) => (
-                 <div key={i} className="bg-white p-4 rounded-xl text-slate-900 text-center shadow-lg">
-                    {m.qrCodeUrl && <img src={m.qrCodeUrl} className="w-32 h-32 mx-auto mb-2 object-contain" />}
-                    <p className="font-black text-xl">{m.methodType}</p>
-                 </div>
-               ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 min-h-0">
+          
+          <div className="lg:col-span-2 flex flex-col min-h-0">
+            <div className="flex items-center gap-3 mb-6">
+              <Heart className="text-red-500 fill-red-500" />
+              <h2 className="text-3xl font-bold">תרומות אחרונות</h2>
             </div>
-            <div className="mt-4 pt-4 border-t border-white/10 text-center opacity-50 text-sm font-bold">פותח ע"י DA ניהול פרויקטים ויזמות</div>
+            
+            <div className="flex flex-col gap-4 flex-1 overflow-hidden relative">
+              <AnimatePresence mode="popLayout">
+                {latestDonations.map((donation: any) => (
+                  <motion.div
+                    key={donation._id}
+                    initial={{ opacity: 0, x: 100, scale: 0.9 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -100, scale: 0.9 }}
+                    transition={{ duration: 0.6, type: "spring" }}
+                    className="bg-white/10 p-6 rounded-2xl border-r-8 flex justify-between items-center shadow-xl backdrop-blur-sm"
+                    style={{ borderRightColor: campaign.themeColor }}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="text-3xl font-bold">{donation.fullName}</span>
+                      {donation.dedication && (
+                        <span className="text-xl italic opacity-70">"{donation.dedication}"</span>
+                      )}
+                    </div>
+                    <div className="text-4xl font-black px-6 py-2 rounded-xl bg-white/5 border border-white/10">
+                      {donation.amount.toLocaleString()} {campaign.currency}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
+
+          <div className="bg-white text-slate-900 p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-2xl">
+            <h3 className="text-3xl font-black mb-8">סרקו לתרומה</h3>
+            <div className="grid grid-cols-1 gap-8 w-full">
+              {campaign.donationMethods?.map((method: any, idx: number) => (
+                <div key={idx} className="flex flex-col items-center gap-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border-4 border-slate-100 shadow-inner">
+                    <img src={method.qrCodeUrl} alt={method.methodType} className="w-48 h-48 object-contain" />
+                  </div>
+                  <span className="text-2xl font-bold bg-slate-100 px-6 py-2 rounded-full border border-slate-200">
+                    {method.methodType}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {campaign.logoUrl && (
+               <img src={campaign.logoUrl} alt="Logo" className="mt-auto h-20 object-contain pt-8" />
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      <div className="bg-white/5 py-3 border-t border-white/10 text-xl font-medium">
+        <div className="flex gap-12 animate-marquee whitespace-nowrap">
+           {[...Array(10)].map((_, i) => (
+             <span key={i} className="flex items-center gap-2">
+               <Users size={20} style={{ color: campaign.themeColor }}/> תרומה חדשה מקפיצה את המד!
+             </span>
+           ))}
         </div>
       </div>
     </div>
