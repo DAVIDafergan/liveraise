@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Settings, Trash2, ExternalLink, LogOut, QrCode, Layout, History, Save, Download, Palette, Image as ImageIcon, LayoutTemplate, Monitor } from 'lucide-react';
+import { Send, Settings, Trash2, ExternalLink, LogOut, QrCode, Layout, History, Save, Download, Palette, Image as ImageIcon, LayoutTemplate, Monitor, RefreshCcw } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -48,6 +48,26 @@ const AdminDashboard: React.FC = () => {
     setLoading(false);
   };
 
+  // פונקציית איפוס קמפיין חדשה
+  const handleResetCampaign = async () => {
+    if (window.confirm('האם אתה בטוח שברצונך למחוק את כל נתוני הקמפיין, לאפס את התרומות והסכום שנאסף? פעולה זו אינה ניתנת לביטול.')) {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/campaign/${campaign._id}/reset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (res.ok) {
+          alert('הקמפיין אופס בהצלחה');
+          fetchData();
+        }
+      } catch (e) {
+        alert('שגיאה באיפוס הקמפיין');
+      }
+      setLoading(false);
+    }
+  };
+
   const exportToCSV = async () => {
     const res = await fetch(`/api/export/${user.slug}`);
     const data = await res.json();
@@ -67,7 +87,15 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-indigo-600 p-2 rounded-lg text-white"><Layout size={20}/></div>
           <h1 className="text-xl font-bold">LiveRaise Admin</h1>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          {/* כפתור איפוס קמפיין */}
+          <button 
+            onClick={handleResetCampaign}
+            className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition-colors text-sm"
+          >
+            <RefreshCcw size={16} className={loading ? 'animate-spin' : ''}/> איפוס קמפיין
+          </button>
+          
           <button onClick={() => window.open(`/screen/${user.slug}`, '_blank')} className="bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold flex gap-2 items-center shadow-emerald-200 shadow-lg">
             <ExternalLink size={18}/> שיגור מסך
           </button>

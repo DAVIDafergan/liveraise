@@ -20,30 +20,28 @@ const LiveScreen: React.FC = () => {
       const res = await fetch(`/api/data/${slug}`);
       const json = await res.json();
       
-      if (data && json.campaign.currentAmount > data.campaign.currentAmount) {
-        setShowConfetti(true);
-        
-        // יצירת מזהה ייחודי לכל תרומה כדי שנוכל להסיר אותה בנפרד
-        const newDonationId = Date.now();
-        const newDonation = { ...json.donations[0], id: newDonationId };
-        
-        // הוספה למערך ההתראות
-        setNotifications(prev => [...prev, newDonation]);
-        
-        // השמעת צליל תרומה
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(e => console.log("Audio play blocked by browser"));
-        }
+      // השוואת נתונים בשביל התראות וקונפטי
+      setData((prevData: any) => {
+        if (prevData && json.campaign.currentAmount > prevData.campaign.currentAmount) {
+          setShowConfetti(true);
+          
+          const newDonationId = Date.now();
+          const newDonation = { ...json.donations[0], id: newDonationId };
+          
+          setNotifications(prev => [...prev, newDonation]);
+          
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(e => console.log("Audio play blocked by browser"));
+          }
 
-        setTimeout(() => setShowConfetti(false), 5000);
-        
-        // העלמת הכרטיס הספציפי אחרי 7 שניות
-        setTimeout(() => {
-          setNotifications(prev => prev.filter(n => n.id !== newDonationId));
-        }, 7000);
-      }
-      setData(json);
+          setTimeout(() => setShowConfetti(false), 5000);
+          setTimeout(() => {
+            setNotifications(prev => prev.filter(n => n.id !== newDonationId));
+          }, 7000);
+        }
+        return json;
+      });
     } catch (err) {
       console.error("Error fetching data:", err);
     }
@@ -53,7 +51,7 @@ const LiveScreen: React.FC = () => {
     fetchStats();
     const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
-  }, [slug, data]);
+  }, [slug]); // הסרת data מה-dependencies כדי למנוע לולאה אינסופית המונעת עדכון צבע
 
   if (!data) return <div className="h-screen bg-slate-900 flex items-center justify-center text-white font-sans">טוען נתונים...</div>;
 
@@ -71,7 +69,7 @@ const LiveScreen: React.FC = () => {
       className="h-screen w-full text-white overflow-hidden flex flex-col font-sans relative" 
       dir="rtl" 
       style={{ 
-        backgroundColor: campaign.backgroundColor || '#020617', // קריאת צבע הרקע מהניהול
+        backgroundColor: campaign.backgroundColor || '#020617', // קריאה דינמית של צבע הרקע
         '--primary': campaign.themeColor,
         zoom: campaign.displaySettings?.scale || 1.0 
       } as any}
