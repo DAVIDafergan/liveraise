@@ -10,8 +10,8 @@ const LiveScreen: React.FC = () => {
   const { width, height } = useWindowSize();
   const [data, setData] = useState<any>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  // מצב חדש לכרטיס התרומה שקופץ מימין
-  const [notificationDonation, setNotificationDonation] = useState<any>(null);
+  // מצב חדש למערך של כרטיסי תרומה שקופצים
+  const [notifications, setNotifications] = useState<any[]>([]);
   // רפרנס לצליל
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -22,8 +22,13 @@ const LiveScreen: React.FC = () => {
       
       if (data && json.campaign.currentAmount > data.campaign.currentAmount) {
         setShowConfetti(true);
-        // הצגת הכרטיס הקטן מימין
-        setNotificationDonation(json.donations[0]);
+        
+        // יצירת מזהה ייחודי לכל תרומה כדי שנוכל להסיר אותה בנפרד
+        const newDonationId = Date.now();
+        const newDonation = { ...json.donations[0], id: newDonationId };
+        
+        // הוספה למערך ההתראות
+        setNotifications(prev => [...prev, newDonation]);
         
         // השמעת צליל תרומה
         if (audioRef.current) {
@@ -32,8 +37,11 @@ const LiveScreen: React.FC = () => {
         }
 
         setTimeout(() => setShowConfetti(false), 5000);
-        // העלמת הכרטיס אחרי 10 שניות
-        setTimeout(() => setNotificationDonation(null), 10000);
+        
+        // העלמת הכרטיס הספציפי אחרי 7 שניות
+        setTimeout(() => {
+          setNotifications(prev => prev.filter(n => n.id !== newDonationId));
+        }, 7000);
       }
       setData(json);
     } catch (err) {
@@ -65,8 +73,8 @@ const LiveScreen: React.FC = () => {
         zoom: campaign.displaySettings?.scale || 1.0 
       } as any}
     >
-      {/* אלמנט אודיו לצליל תרומה */}
-      <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" />
+      {/* אלמנט אודיו לצליל תרומה - הוחלף לצליל כסף נעים */}
+      <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" />
 
       {/* CSS לאנימציית גלילה יוקרתית */}
       <style>{`
@@ -95,29 +103,32 @@ const LiveScreen: React.FC = () => {
 
       {showConfetti && <Confetti width={width} height={height} colors={[campaign.themeColor, '#ffffff']} />}
 
-      {/* כרטיס תרומה קופץ מימין (Notification) */}
-      <AnimatePresence>
-        {notificationDonation && (
-          <motion.div
-            initial={{ x: 400, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 400, opacity: 0 }}
-            className="fixed right-8 top-1/4 z-[100] bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border-l-8 flex items-center gap-4 min-w-[300px]"
-            style={{ borderLeftColor: campaign.themeColor }}
-          >
-            <div className="bg-slate-100 p-3 rounded-full">
-              <Heart className="text-red-500 fill-red-500" size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-bold opacity-50 uppercase">תרומה חדשה!</p>
-              <h4 className="text-xl font-black">{notificationDonation.fullName}</h4>
-              <p className="text-2xl font-black" style={{ color: campaign.themeColor }}>
-                ₪{notificationDonation.amount.toLocaleString()}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* מיכל לכרטיסי תרומה קופצים (Stack) */}
+      <div className="fixed right-8 top-24 z-[100] flex flex-col gap-4">
+        <AnimatePresence>
+          {notifications.map((notif) => (
+            <motion.div
+              key={notif.id}
+              initial={{ x: 400, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 400, opacity: 0 }}
+              className="bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border-l-8 flex items-center gap-4 min-w-[300px]"
+              style={{ borderLeftColor: campaign.themeColor }}
+            >
+              <div className="bg-slate-100 p-3 rounded-full">
+                <Heart className="text-red-500 fill-red-500" size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-bold opacity-50 uppercase">תרומה חדשה!</p>
+                <h4 className="text-xl font-black">{notif.fullName}</h4>
+                <p className="text-2xl font-black" style={{ color: '#1e3a8a' }}>
+                  ₪{notif.amount.toLocaleString()}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
 
       {/* באנר עליון דינמי - מוקטן מעט כדי לתת מקום לתרומות */}
       {campaign.bannerUrl ? (
