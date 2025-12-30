@@ -48,7 +48,7 @@ const AdminDashboard: React.FC = () => {
     setLoading(false);
   };
 
-  // פונקציית איפוס קמפיין חדשה
+  // פונקציית איפוס קמפיין מעודכנת - מאפסת הכל מידית
   const handleResetCampaign = async () => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק את כל נתוני הקמפיין, לאפס את התרומות והסכום שנאסף? פעולה זו אינה ניתנת לביטול.')) {
       setLoading(true);
@@ -58,6 +58,13 @@ const AdminDashboard: React.FC = () => {
           headers: { 'Content-Type': 'application/json' }
         });
         if (res.ok) {
+          // עדכון ה-UI לאפס באופן מיידי
+          setDonations([]);
+          setCampaign((prev: any) => ({
+            ...prev,
+            currentAmount: 0,
+            manualStartingAmount: 0
+          }));
           alert('הקמפיין אופס בהצלחה');
           fetchData();
         }

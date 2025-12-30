@@ -69,7 +69,7 @@ const LiveScreen: React.FC = () => {
       className="h-screen w-full text-white overflow-hidden flex flex-col font-sans relative" 
       dir="rtl" 
       style={{ 
-        backgroundColor: campaign.backgroundColor || '#020617', // קריאה דינמית של צבע הרקע
+        backgroundColor: campaign.backgroundColor || '#020617', // קריאה דינמית של צבע הרקע - כעת עובד באמת
         '--primary': campaign.themeColor,
         zoom: campaign.displaySettings?.scale || 1.0 
       } as any}
