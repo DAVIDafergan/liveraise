@@ -58,17 +58,20 @@ const LiveScreen: React.FC = () => {
   if (!data) return <div className="h-screen bg-slate-900 flex items-center justify-center text-white font-sans">טוען נתונים...</div>;
 
   const { campaign, donations } = data;
-  const totalRaised = campaign.currentAmount + campaign.manualStartingAmount;
-  const progress = Math.min((totalRaised / campaign.targetAmount) * 100, 100);
+  
+  // חישוב מדויק של כמה נאסף מתוך היעד: סכום המערכת + סכום שהוגדר מראש בניהול
+  const totalRaised = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
+  const progress = Math.min((totalRaised / (campaign.targetAmount || 1)) * 100, 100);
 
   // שימוש בכל התרומות עבור הגלילה האינסופית - שכפול המערך ליצירת לולאה חלקה
   const allDonations = [...donations, ...donations, ...donations, ...donations]; 
 
   return (
     <div 
-      className="h-screen w-full bg-[#020617] text-white overflow-hidden flex flex-col font-sans relative" 
+      className="h-screen w-full text-white overflow-hidden flex flex-col font-sans relative" 
       dir="rtl" 
       style={{ 
+        backgroundColor: campaign.backgroundColor || '#020617', // קריאת צבע הרקע מהניהול
         '--primary': campaign.themeColor,
         zoom: campaign.displaySettings?.scale || 1.0 
       } as any}
@@ -137,7 +140,12 @@ const LiveScreen: React.FC = () => {
       {campaign.bannerUrl ? (
         <div className="w-full h-[200px] overflow-hidden shadow-2xl relative shrink-0 border-b border-white/5">
           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent opacity-40" />
+          <div 
+            className="absolute inset-0 opacity-40" 
+            style={{ 
+              background: `linear-gradient(to top, ${campaign.backgroundColor || '#020617'}, transparent)` 
+            }} 
+          />
           {campaign.logoUrl && (
             <div className="absolute bottom-4 right-12 bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-2xl">
               <img src={campaign.logoUrl} alt="Logo" className="h-28 object-contain" />

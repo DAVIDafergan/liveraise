@@ -88,6 +88,12 @@ const AdminDashboard: React.FC = () => {
                  <label className="text-xs font-bold text-slate-500">יעד גיוס</label>
                  <input type="number" className="w-full border p-2 rounded-lg" value={campaign.targetAmount} onChange={e => setCampaign({...campaign, targetAmount: Number(e.target.value)})} />
                </div>
+               {/* הוספת אפשרות לעדכון סכום שנאסף מראש */}
+               <div className="space-y-1 col-span-2 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                 <label className="text-xs font-bold text-emerald-700">כמה אספו כבר מראש (מתוך היעד)</label>
+                 <input type="number" className="w-full border p-2 rounded-lg" value={campaign.manualStartingAmount} onChange={e => setCampaign({...campaign, manualStartingAmount: Number(e.target.value)})} />
+                 <p className="text-[10px] text-emerald-600 mt-1">סכום זה יתווסף אוטומטית למד ההתקדמות הכללי במסך.</p>
+               </div>
             </div>
             
             {/* מיתוג אישי */}
@@ -115,6 +121,7 @@ const AdminDashboard: React.FC = () => {
                      <ImageIcon size={18} className="text-slate-400"/>
                      <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: PNG שקוף 500x500" value={campaign.logoUrl || ''} onChange={e => setCampaign({...campaign, logoUrl: e.target.value})} />
                    </div>
+                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: העלה לוגו בפורמט PNG שקוף, גודל מומלץ 500x500 פיקסלים.</p>
                  </div>
                  <div className="col-span-1">
                    <label className="text-xs font-bold block mb-1">קישור לבאנר עליון (URL)</label>
@@ -122,6 +129,7 @@ const AdminDashboard: React.FC = () => {
                      <LayoutTemplate size={18} className="text-slate-400"/>
                      <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: 1920x200" value={campaign.bannerUrl || ''} onChange={e => setCampaign({...campaign, bannerUrl: e.target.value})} />
                    </div>
+                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: עבור פריסה מלאה, השתמש בתמונה בגודל 1920x200 פיקסלים.</p>
                  </div>
                </div>
             </div>
