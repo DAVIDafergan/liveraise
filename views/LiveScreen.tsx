@@ -61,8 +61,8 @@ const LiveScreen: React.FC = () => {
   const totalRaised = campaign.currentAmount + campaign.manualStartingAmount;
   const progress = Math.min((totalRaised / campaign.targetAmount) * 100, 100);
 
-  // שימוש בכל התרומות עבור הגלילה האינסופית
-  const allDonations = [...donations, ...donations]; 
+  // שימוש בכל התרומות עבור הגלילה האינסופית - שכפול המערך ליצירת לולאה חלקה
+  const allDonations = [...donations, ...donations, ...donations, ...donations]; 
 
   return (
     <div 
@@ -76,24 +76,24 @@ const LiveScreen: React.FC = () => {
       {/* אלמנט אודיו לצליל תרומה - הוחלף לצליל כסף נעים */}
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" />
 
-      {/* CSS לאנימציית גלילה יוקרתית */}
+      {/* CSS לאנימציית גלילה יוקרתית ואיטית יותר */}
       <style>{`
         @keyframes scrollUp {
           0% { transform: translateY(0); }
           100% { transform: translateY(-50%); }
         }
         .scroll-marquee {
-          animation: scrollUp 30s linear infinite;
+          animation: scrollUp 120s linear infinite; /* גלילה איטית פי 4 */
         }
         .scroll-marquee:hover {
           animation-play-state: paused;
         }
         .mask-fade {
-          mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+          mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
         }
         .animate-marquee {
           display: flex;
-          animation: marquee 40s linear infinite;
+          animation: marquee 50s linear infinite;
         }
         @keyframes marquee {
           0% { transform: translateX(0); }
@@ -133,44 +133,44 @@ const LiveScreen: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* באנר עליון דינמי - גובה שונה ל-300 פיקסל */}
+      {/* באנר עליון דינמי - גובה מקובע ל-200 פיקסל */}
       {campaign.bannerUrl ? (
-        <div className="w-full h-[300px] overflow-hidden shadow-2xl relative shrink-0">
+        <div className="w-full h-[200px] overflow-hidden shadow-2xl relative shrink-0 border-b border-white/5">
           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent opacity-40" />
           {campaign.logoUrl && (
-            <div className="absolute bottom-4 right-12 bg-white p-2.5 rounded-2xl shadow-2xl">
-              <img src={campaign.logoUrl} alt="Logo" className="h-24 object-contain" />
+            <div className="absolute bottom-4 right-12 bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-2xl">
+              <img src={campaign.logoUrl} alt="Logo" className="h-28 object-contain" />
             </div>
           )}
         </div>
       ) : (
         campaign.logoUrl && (
-          <div className="absolute top-8 right-12 z-20 bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-2xl">
-            <img src={campaign.logoUrl} alt="Logo" className="h-48 object-contain" />
+          <div className="absolute top-6 right-12 z-20 bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-2xl">
+            <img src={campaign.logoUrl} alt="Logo" className="h-40 object-contain" />
           </div>
         )
       )}
 
-      <div className={`flex-1 max-w-[95%] mx-auto w-full p-6 flex flex-col gap-4 min-h-0 ${!campaign.bannerUrl ? 'pt-24' : ''}`}>
+      <div className={`flex-1 max-w-[98%] mx-auto w-full p-4 flex flex-col gap-4 min-h-0 ${!campaign.bannerUrl ? 'pt-24' : ''}`}>
         
         <div className="flex justify-between items-end border-b border-white/10 pb-2 relative z-10">
           <div>
-            <h1 className="text-4xl font-black mb-1 tracking-tighter">{campaign.name}</h1>
+            <h1 className="text-4xl font-black mb-1 tracking-tighter uppercase">{campaign.name}</h1>
             <p className="text-xl opacity-60 italic font-medium">{campaign.subTitle}</p>
           </div>
           <div className="text-left">
             <p className="text-[10px] opacity-50 uppercase tracking-[0.3em] mb-1">סה"כ נאסף</p>
-            <div className="text-5xl font-black" style={{ color: campaign.themeColor }}>
+            <div className="text-6xl font-black tracking-tighter" style={{ color: campaign.themeColor }}>
                 {totalRaised.toLocaleString()} {campaign.currency}
             </div>
           </div>
         </div>
 
-        {/* מד התקדמות יוקרתי - דק ואלגנטי בסגנון דאשבורד נתונים */}
+        {/* מד התקדמות יוקרתי */}
         <div className="bg-white/5 p-4 rounded-[1.5rem] border border-white/10 shadow-2xl backdrop-blur-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full" />
-          <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
+          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -182,79 +182,67 @@ const LiveScreen: React.FC = () => {
               <div className="absolute right-0 top-0 h-full w-4 bg-white/30 blur-sm" />
             </motion.div>
           </div>
-          <div className="flex justify-between mt-2 text-sm font-bold opacity-60 px-1 tracking-widest uppercase">
-            <span>{progress.toFixed(1)}% הושלמו</span>
+          <div className="flex justify-between mt-2 text-sm font-bold opacity-70 px-1 tracking-widest">
+            <span>{progress.toFixed(1)}% הושלמו מהיעד</span>
             <div className="flex items-center gap-2">
-                <Target size={14} />
-                <span>יעד: {campaign.targetAmount.toLocaleString()} {campaign.currency}</span>
+                <Target size={16} />
+                <span>יעד הקמפיין: {campaign.targetAmount.toLocaleString()} {campaign.currency}</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 min-h-0">
+        {/* פריסה מלאה של זרם התרומות */}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
+            <TrendingUp size={24} className="text-emerald-400" />
+            <h2 className="text-3xl font-black tracking-tighter opacity-90">תרומות אחרונות בזמן אמת</h2>
+          </div>
           
-          {/* גלילה אינסופית של תרומות - מורחב למרכז המסך */}
-          <div className="lg:col-span-2 flex flex-col min-h-0">
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingUp size={20} className="text-emerald-400" />
-              <h2 className="text-2xl font-bold tracking-tight opacity-80">זרם תרומות בזמן אמת</h2>
-            </div>
-            
-            <div className="flex-1 overflow-hidden relative mask-fade">
-              <div className="scroll-marquee flex flex-col gap-4 pt-4 pb-20">
+          <div className="flex-1 overflow-hidden relative mask-fade">
+            <div className="scroll-marquee">
+              {/* יצירת גריד של 5 כרטיסים בשורה בתוך הגלילה */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 py-4">
                 {allDonations.map((donation: any, idx: number) => (
-                  <div
+                  <motion.div
                     key={`${donation._id}-${idx}`}
-                    className="bg-white/5 p-5 rounded-[1.5rem] border-r-4 flex justify-between items-center shadow-xl backdrop-blur-md border border-white/5 hover:bg-white/10 transition-colors"
-                    style={{ borderRightColor: campaign.themeColor }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white/5 backdrop-blur-lg p-5 rounded-[2rem] border border-white/10 flex flex-col justify-between shadow-2xl hover:bg-white/10 transition-all duration-300 relative overflow-hidden group"
+                    style={{ borderTop: `4px solid ${campaign.themeColor}` }}
                   >
-                    <div className="flex flex-col gap-1">
-                      <span className="text-2xl font-bold tracking-tight">{donation.fullName}</span>
+                    <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                       <Heart size={80} fill={campaign.themeColor} />
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 relative z-10">
+                      <span className="text-xl font-black leading-tight tracking-tight text-white/90 truncate">{donation.fullName}</span>
                       {donation.dedication && (
-                        <span className="text-lg italic opacity-70 font-medium">"{donation.dedication}"</span>
+                        <p className="text-sm italic opacity-60 font-medium line-clamp-2 leading-relaxed h-10">"{donation.dedication}"</p>
                       )}
                     </div>
-                    <div className="text-3xl font-black px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-white shadow-inner">
-                      {donation.amount.toLocaleString()} {campaign.currency}
+
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between relative z-10">
+                      <div className="text-2xl font-black tracking-tighter" style={{ color: campaign.themeColor }}>
+                        ₪{donation.amount.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest">תרומה</div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
           </div>
-
-          {/* אזור ה-QR - מוקטן מעט כדי לתת מקום לתרומות */}
-          <div className="bg-white text-slate-900 p-6 rounded-[2.5rem] flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 inset-x-0 h-1.5" style={{ backgroundColor: campaign.themeColor }} />
-            <h3 className="text-2xl font-black mb-6 text-slate-800 tracking-tighter">סרקו לתרומה</h3>
-            <div className="grid grid-cols-1 gap-6 w-full">
-              {campaign.donationMethods?.map((method: any, idx: number) => (
-                <div key={idx} className="flex flex-col items-center gap-2 group">
-                  <div className="p-3 bg-slate-50 rounded-[2rem] border-2 border-slate-100 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                    <img src={method.qrCodeUrl} alt={method.methodType} className="w-36 h-36 object-contain" />
-                  </div>
-                  <span className="text-xl font-bold bg-slate-100 px-6 py-1 rounded-full border border-slate-200 text-slate-500 uppercase text-xs">
-                    {method.methodType}
-                  </span>
-                </div>
-              ))}
-            </div>
-            {campaign.logoUrl && !campaign.bannerUrl && (
-               <img src={campaign.logoUrl} alt="Logo" className="mt-auto h-32 object-contain pt-4" />
-            )}
-          </div>
-
         </div>
       </div>
 
-      {/* Marquee תחתון - מעודכן להצגת תרומות אמיתיות (שם וסכום) */}
-      <div className="bg-white/5 py-3 border-t border-white/10 text-xl font-bold overflow-hidden">
+      {/* Marquee תחתון */}
+      <div className="bg-white/5 py-4 border-t border-white/10 text-2xl font-black overflow-hidden backdrop-blur-md">
         <div className="animate-marquee whitespace-nowrap flex gap-12">
            {donations.concat(donations).map((d: any, i: number) => (
-             <span key={i} className="flex items-center gap-4 text-white/90">
-               <Heart size={18} style={{ color: campaign.themeColor }} className="fill-current"/> 
-               <span className="font-bold">{d.fullName}</span>
-               <span style={{ color: campaign.themeColor }}>₪{d.amount.toLocaleString()}</span>
+             <span key={i} className="flex items-center gap-6 text-white/90">
+               <Heart size={22} style={{ color: campaign.themeColor }} className="fill-current"/> 
+               <span className="font-black">{d.fullName}</span>
+               <span className="px-4 py-1 rounded-full bg-white/5" style={{ color: campaign.themeColor }}>₪{d.amount.toLocaleString()}</span>
                <span className="opacity-20 mx-4">|</span>
              </span>
            ))}
@@ -264,4 +252,4 @@ const LiveScreen: React.FC = () => {
   );
 };
 
-export default LiveScreen;;
+export default LiveScreen;
