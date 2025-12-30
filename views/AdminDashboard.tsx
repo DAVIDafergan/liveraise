@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Settings, Trash2, ExternalLink, LogOut, QrCode, Layout, History, Save, Download, Palette, Image as ImageIcon, LayoutTemplate } from 'lucide-react';
+import { Send, Settings, Trash2, ExternalLink, LogOut, QrCode, Layout, History, Save, Download, Palette, Image as ImageIcon, LayoutTemplate, Monitor } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -96,33 +96,39 @@ const AdminDashboard: React.FC = () => {
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
-                   <label className="text-xs font-bold block mb-1">צבע ראשי</label>
+                   <label className="text-xs font-bold block mb-1">צבע אלמנטים (Theme)</label>
                    <div className="flex gap-2">
                      <input type="color" className="h-10 w-10 cursor-pointer rounded" value={campaign.themeColor || '#10b981'} onChange={e => setCampaign({...campaign, themeColor: e.target.value})} />
                      <input className="border p-2 rounded-lg flex-1 text-left" value={campaign.themeColor || '#10b981'} onChange={e => setCampaign({...campaign, themeColor: e.target.value})} />
                    </div>
                  </div>
                  <div>
+                   <label className="text-xs font-bold block mb-1 text-indigo-600">צבע רקע מסך (Background)</label>
+                   <div className="flex gap-2">
+                     <input type="color" className="h-10 w-10 cursor-pointer rounded shadow-sm border" value={campaign.backgroundColor || '#020617'} onChange={e => setCampaign({...campaign, backgroundColor: e.target.value})} />
+                     <input className="border p-2 rounded-lg flex-1 text-left" value={campaign.backgroundColor || '#020617'} onChange={e => setCampaign({...campaign, backgroundColor: e.target.value})} />
+                   </div>
+                 </div>
+                 <div>
                    <label className="text-xs font-bold block mb-1">קישור ללוגו (URL)</label>
                    <div className="flex gap-2 items-center">
                      <ImageIcon size={18} className="text-slate-400"/>
-                     <input className="border p-2 rounded-lg w-full text-left" placeholder="https://..." value={campaign.logoUrl || ''} onChange={e => setCampaign({...campaign, logoUrl: e.target.value})} />
+                     <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: PNG שקוף 500x500" value={campaign.logoUrl || ''} onChange={e => setCampaign({...campaign, logoUrl: e.target.value})} />
                    </div>
                  </div>
-                 <div className="col-span-2">
+                 <div className="col-span-1">
                    <label className="text-xs font-bold block mb-1">קישור לבאנר עליון (URL)</label>
                    <div className="flex gap-2 items-center">
                      <LayoutTemplate size={18} className="text-slate-400"/>
-                     <input className="border p-2 rounded-lg w-full text-left" placeholder="https://..." value={campaign.bannerUrl || ''} onChange={e => setCampaign({...campaign, bannerUrl: e.target.value})} />
+                     <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: 1920x200" value={campaign.bannerUrl || ''} onChange={e => setCampaign({...campaign, bannerUrl: e.target.value})} />
                    </div>
-                   <p className="text-xs text-slate-400 mt-1">אופציונלי: באנר שיופיע בראש מסך הלייב לכל רוחבו.</p>
                  </div>
                </div>
             </div>
 
             {/* הגדרות תצוגה ורזולוציה */}
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-6">
-              <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Layout size={16}/> הגדרות רזולוציה ומסך</h3>
+              <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Monitor size={16}/> הגדרות רזולוציה ומסך</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-2">
@@ -148,23 +154,6 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* ניהול QR */}
-            <h3 className="font-bold text-sm mb-2 flex gap-2"><QrCode size={16}/> דרכי תרומה</h3>
-            <div className="space-y-2 mb-6">
-              {campaign.donationMethods?.map((m: any, i: number) => (
-                <div key={i} className="flex gap-2">
-                  <input placeholder="סוג (Bit)" className="w-1/3 border p-2 rounded" value={m.methodType} onChange={e => {
-                    const methods = [...campaign.donationMethods]; methods[i].methodType = e.target.value; setCampaign({...campaign, donationMethods: methods});
-                  }} />
-                  <input placeholder="URL לתמונה" className="w-full border p-2 rounded" value={m.qrCodeUrl} onChange={e => {
-                    const methods = [...campaign.donationMethods]; methods[i].qrCodeUrl = e.target.value; setCampaign({...campaign, donationMethods: methods});
-                  }} />
-                  <button onClick={() => setCampaign({...campaign, donationMethods: campaign.donationMethods.filter((_:any, idx:number) => idx !== i)})} className="text-red-400"><Trash2/></button>
-                </div>
-              ))}
-              <button onClick={() => setCampaign({...campaign, donationMethods: [...(campaign.donationMethods||[]), {methodType:'', qrCodeUrl:''}]})} className="text-indigo-600 text-sm font-bold">+ הוסף דרך תרומה</button>
             </div>
             
             <button onClick={handleSaveSettings} className="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold flex justify-center gap-2 shadow-indigo-100 shadow-lg"><Save size={18}/> שמור שינויים</button>
