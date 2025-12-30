@@ -112,15 +112,18 @@ const LiveScreen: React.FC = () => {
               initial={{ x: 400, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 400, opacity: 0 }}
-              className="bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border-l-8 flex items-center gap-4 min-w-[300px]"
+              className="bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border-l-8 flex items-center gap-4 min-w-[320px]"
               style={{ borderLeftColor: campaign.themeColor }}
             >
               <div className="bg-slate-100 p-3 rounded-full">
                 <Heart className="text-red-500 fill-red-500" size={24} />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-bold opacity-50 uppercase">תרומה חדשה!</p>
                 <h4 className="text-xl font-black">{notif.fullName}</h4>
+                {notif.dedication && (
+                  <p className="text-md italic text-slate-600 font-medium mb-1">"{notif.dedication}"</p>
+                )}
                 <p className="text-2xl font-black" style={{ color: '#1e3a8a' }}>
                   ₪{notif.amount.toLocaleString()}
                 </p>
@@ -130,21 +133,21 @@ const LiveScreen: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* באנר עליון דינמי - מוקטן מעט כדי לתת מקום לתרומות */}
+      {/* באנר עליון דינמי - גובה שונה ל-300 פיקסל */}
       {campaign.bannerUrl ? (
-        <div className="w-full h-[12vh] overflow-hidden shadow-2xl relative shrink-0">
+        <div className="w-full h-[300px] overflow-hidden shadow-2xl relative shrink-0">
           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent opacity-60" />
           {campaign.logoUrl && (
-            <div className="absolute bottom-2 right-12 bg-white p-1.5 rounded-xl shadow-2xl">
-              <img src={campaign.logoUrl} alt="Logo" className="h-8 object-contain" />
+            <div className="absolute bottom-4 right-12 bg-white p-2.5 rounded-2xl shadow-2xl">
+              <img src={campaign.logoUrl} alt="Logo" className="h-24 object-contain" />
             </div>
           )}
         </div>
       ) : (
         campaign.logoUrl && (
-          <div className="absolute top-8 right-12 z-20 bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-2xl">
-            <img src={campaign.logoUrl} alt="Logo" className="h-20 object-contain" />
+          <div className="absolute top-8 right-12 z-20 bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-2xl">
+            <img src={campaign.logoUrl} alt="Logo" className="h-48 object-contain" />
           </div>
         )
       )}
@@ -237,7 +240,7 @@ const LiveScreen: React.FC = () => {
               ))}
             </div>
             {campaign.logoUrl && !campaign.bannerUrl && (
-               <img src={campaign.logoUrl} alt="Logo" className="mt-auto h-16 object-contain pt-4" />
+               <img src={campaign.logoUrl} alt="Logo" className="mt-auto h-32 object-contain pt-4" />
             )}
           </div>
 
@@ -261,4 +264,4 @@ const LiveScreen: React.FC = () => {
   );
 };
 
-export default LiveScreen;
+export default LiveScreen;;
