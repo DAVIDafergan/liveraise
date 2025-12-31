@@ -48,7 +48,7 @@ const AdminDashboard: React.FC = () => {
     setLoading(false);
   };
 
-  // פונקציית איפוס קמפיין מעודכנת - מוחקת הכל מהמסך ומהשרת
+  // פונקציית איפוס קמפיין מתוקנת - מוחקת הכל מהמסך ומהשרת ומאפסת מונים
   const handleResetCampaign = async () => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק את כל נתוני הקמפיין, לאפס את התרומות והסכום שנאסף? פעולה זו אינה ניתנת לביטול.')) {
       setLoading(true);
@@ -58,14 +58,14 @@ const AdminDashboard: React.FC = () => {
           headers: { 'Content-Type': 'application/json' }
         });
         if (res.ok) {
-          // עדכון ה-UI לאפס באופן מיידי
+          // ניקוי מיידי של התצוגה בדשבורד ובמסך
           setDonations([]);
           setCampaign((prev: any) => ({
             ...prev,
             currentAmount: 0,
             manualStartingAmount: 0
           }));
-          alert('הקמפיין אופס בהצלחה! המסך כעת נקי.');
+          alert('הקמפיין אופס בהצלחה! כל התרומות נמחקו.');
           fetchData();
         }
       } catch (e) {
@@ -151,58 +151,55 @@ const AdminDashboard: React.FC = () => {
                    <label className="text-xs font-bold block mb-1">קישור ללוגו (URL)</label>
                    <div className="flex gap-2 items-center">
                      <ImageIcon size={18} className="text-slate-400"/>
-                     <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: PNG שקוף 500x500" value={campaign.logoUrl || ''} onChange={e => setCampaign({...campaign, logoUrl: e.target.value})} />
+                     <input className="border p-2 rounded-lg w-full text-left" placeholder="https://..." value={campaign.logoUrl || ''} onChange={e => setCampaign({...campaign, logoUrl: e.target.value})} />
                    </div>
-                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: PNG שקוף, 500x500px.</p>
+                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">מומלץ: PNG שקוף 500x500 פיקסלים.</p>
                  </div>
                  <div className="col-span-1">
                    <label className="text-xs font-bold block mb-1">קישור לבאנר עליון (URL)</label>
                    <div className="flex gap-2 items-center">
                      <LayoutTemplate size={18} className="text-slate-400"/>
-                     <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: 1920x200" value={campaign.bannerUrl || ''} onChange={e => setCampaign({...campaign, bannerUrl: e.target.value})} />
+                     <input className="border p-2 rounded-lg w-full text-left" placeholder="https://..." value={campaign.bannerUrl || ''} onChange={e => setCampaign({...campaign, bannerUrl: e.target.value})} />
                    </div>
-                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: פריסה מלאה 1920x200px.</p>
+                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">מומלץ: פריסה רחבה 1920x200 פיקסלים.</p>
                  </div>
                </div>
             </div>
 
-            {/* הגדרות תצוגה ורזולוציה עם מסכים ספציפיים */}
+            {/* הגדרות תצוגה - תיקון כפתורי רזולוציה למסכי לדים */}
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-6">
-              <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Monitor size={16}/> הגדרות רזולוציה ומסך</h3>
+              <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Monitor size={16}/> הגדרות רזולוציה ומסך (4K Support)</h3>
               <div className="space-y-6">
                 <div>
                    <label className="text-xs font-bold mb-3 block">התאמה למסכי לדים (Presets):</label>
                    <div className="flex flex-wrap gap-3">
                       <button 
-                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: 2688, height: 768, scale: 1.0 }})}
-                        className="bg-white border-2 border-indigo-200 hover:border-indigo-600 px-4 py-2 rounded-xl text-xs font-black transition-all"
+                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: 2688, height: 768 }})}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border-2 ${campaign.displaySettings?.width === 2688 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-200 text-indigo-600 hover:border-indigo-600'}`}
                       >
                          מסך השכרה (2688x768)
                       </button>
                       <button 
-                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: 2720, height: 384, scale: 1.0 }})}
-                        className="bg-white border-2 border-indigo-200 hover:border-indigo-600 px-4 py-2 rounded-xl text-xs font-black transition-all"
+                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: 2720, height: 384 }})}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border-2 ${campaign.displaySettings?.width === 2720 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-200 text-indigo-600 hover:border-indigo-600'}`}
                       >
                          מסך אולם (2720x384)
                       </button>
                       <button 
-                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: undefined, height: undefined, scale: 1.0 }})}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black transition-all flex gap-2 items-center"
+                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: undefined, height: undefined }})}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border-2 ${!campaign.displaySettings?.width ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-emerald-200 text-emerald-600'}`}
                       >
-                         <Maximize size={14}/> מסך רגיל (Full)
+                         <Maximize size={14} className="inline ml-1"/> מסך רגיל (מלא)
                       </button>
                    </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-2">
-                    <label className="text-xs font-bold">קנה מידה (Zoom): {campaign.displaySettings?.scale || 1.0}x</label>
+                    <label className="text-xs font-bold">קנה מידה (Zoom / Quality): {campaign.displaySettings?.scale || 1.0}x</label>
                   </div>
                   <input 
-                    type="range" 
-                    min="0.5" 
-                    max="3.0" 
-                    step="0.1" 
+                    type="range" min="0.5" max="3.0" step="0.1" 
                     className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer"
                     value={campaign.displaySettings?.scale || 1.0} 
                     onChange={e => setCampaign({
@@ -214,7 +211,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
             
-            <button onClick={handleSaveSettings} className="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold flex justify-center gap-2 shadow-indigo-100 shadow-lg"><Save size={18}/> שמור שינויים</button>
+            <button onClick={handleSaveSettings} className="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold flex justify-center gap-2 shadow-indigo-100 shadow-lg hover:bg-indigo-700 transition-colors"><Save size={18}/> שמור שינויים</button>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border">
