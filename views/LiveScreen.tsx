@@ -83,7 +83,7 @@ const LiveScreen: React.FC = () => {
           0% { transform: translateY(0); }
           100% { transform: translateY(-50%); }
         }
-        .scroll-marquee { animation: scrollUp 120s linear infinite; }
+        .scroll-marquee { animation: scrollUp 95s linear infinite; } /* גלילה מהירה מעט יותר */
         .mask-fade { mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent); }
         .animate-marquee { display: flex; animation: marquee 50s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
@@ -115,23 +115,19 @@ const LiveScreen: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* באנר ולוגו ריחף ללא מסגרת */}
+      {/* באנר ולוגו ריחף ללא מסגרת וללא תזוזה */}
       {campaign.bannerUrl && (
         <div className="w-full h-[200px] overflow-hidden shadow-2xl relative shrink-0 border-b border-white/5">
           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
           <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(to top, ${campaign.backgroundColor || '#020617'}, transparent)` }} />
           {campaign.logoUrl && (
-            <motion.div 
-              animate={{ y: [0, -12, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-4 right-12 z-30"
-            >
+            <div className="absolute bottom-4 right-12 z-30">
               <img 
                 src={campaign.logoUrl} 
                 alt="Logo" 
-                className="h-32 w-auto object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]" 
+                className="h-32 w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]" 
               />
-            </motion.div>
+            </div>
           )}
         </div>
       )}
