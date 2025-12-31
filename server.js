@@ -69,8 +69,8 @@ app.get('/api/export/:slug', async (req, res) => {
 
 app.post('/api/donations/:campaignId', async (req, res) => {
   try {
-    const { fullName, amount, dedication } = req.body; // התיקון כאן: fullName במקום firstName ו-lastName
-    const donation = new Donation({ campaignId: req.params.campaignId, fullName, amount, dedication }); // התיקון כאן
+    const { fullName, amount, dedication } = req.body;
+    const donation = new Donation({ campaignId: req.params.campaignId, fullName, amount, dedication });
     await donation.save();
     const campaign = await Campaign.findByIdAndUpdate(req.params.campaignId, { $inc: { currentAmount: amount } }, { new: true });
     res.json({ donation, campaignUpdate: campaign });
@@ -82,6 +82,23 @@ app.patch('/api/campaign/:id', async (req, res) => {
     const campaign = await Campaign.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(campaign);
   } catch (err) { res.status(500).json({ error: "Update Error" }); }
+});
+
+// --- נתיב איפוס קמפיין חדש ---
+app.post('/api/campaign/:id/reset', async (req, res) => {
+  try {
+    const campaignId = req.params.id;
+    // מחיקת כל התרומות המשויכות לקמפיין
+    await Donation.deleteMany({ campaignId });
+    // איפוס סכום נוכחי וסכום ידני בבסיס הנתונים
+    const campaign = await Campaign.findByIdAndUpdate(campaignId, { 
+      currentAmount: 0, 
+      manualStartingAmount: 0 
+    }, { new: true });
+    res.json({ success: true, campaign });
+  } catch (err) {
+    res.status(500).json({ error: "Reset Error" });
+  }
 });
 
 app.delete('/api/donations/:donationId', async (req, res) => {

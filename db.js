@@ -17,21 +17,27 @@ const CampaignSchema = new mongoose.Schema({
   currency: { type: String, default: '₪' },
   
   // --- הגדרות עיצוב ומיתוג ---
-  themeColor: { type: String, default: '#10b981' }, // צבע ראשי
-  logoUrl: { type: String, default: '' }, // לוגו (אופציונלי)
-  bannerUrl: { type: String, default: '' }, // באנר עליון (אופציונלי)
+  themeColor: { type: String, default: '#10b981' }, 
+  backgroundColor: { type: String, default: '#020617' }, // התווסף: שמירת צבע רקע
+  logoUrl: { type: String, default: '' }, 
+  bannerUrl: { type: String, default: '' }, 
   
   donationMethods: [{
     methodType: String,
     qrCodeUrl: String,
     label: String
   }],
-  displaySettings: { scale: { type: Number, default: 1.0 } },
+  // התווסף: תמיכה במידות רוחב וגובה עבור מסכי לדים (4K)
+  displaySettings: { 
+    scale: { type: Number, default: 1.0 },
+    width: { type: Number },
+    height: { type: Number }
+  },
 });
 
 const DonationSchema = new mongoose.Schema({
   campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
-  fullName: { type: String, required: true }, // השדה המאוחד החדש
+  fullName: { type: String, required: true }, 
   amount: { type: Number, required: true },
   dedication: { type: String, default: '' },
   timestamp: { type: Date, default: Date.now },
