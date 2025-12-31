@@ -69,8 +69,8 @@ app.get('/api/export/:slug', async (req, res) => {
 
 app.post('/api/donations/:campaignId', async (req, res) => {
   try {
-    const { fullName, amount, dedication } = req.body;
-    const donation = new Donation({ campaignId: req.params.campaignId, fullName, amount, dedication });
+    const { fullName, amount, dedication, phone } = req.body; // הוספת phone לקבלה מהבקשה
+    const donation = new Donation({ campaignId: req.params.campaignId, fullName, amount, dedication, phone }); // הוספת phone ליצירת התרומה
     await donation.save();
     const campaign = await Campaign.findByIdAndUpdate(req.params.campaignId, { $inc: { currentAmount: amount } }, { new: true });
     res.json({ donation, campaignUpdate: campaign });

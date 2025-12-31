@@ -8,7 +8,7 @@ const AdminDashboard: React.FC = () => {
   const [user] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
   const [campaign, setCampaign] = useState<any>(null);
   const [donations, setDonations] = useState<any[]>([]);
-  const [formData, setFormData] = useState({ fullName: '', amount: '', dedication: '' });
+  const [formData, setFormData] = useState({ fullName: '', amount: '', dedication: '', phone: '' });
 
   const fetchData = async () => {
     if (!user.slug) { navigate('/'); return; }
@@ -42,7 +42,7 @@ const AdminDashboard: React.FC = () => {
       body: JSON.stringify({ ...formData, amount: Number(formData.amount) })
     });
     if (res.ok) {
-      setFormData({ fullName: '', amount: '', dedication: '' });
+      setFormData({ fullName: '', amount: '', dedication: '', phone: '' });
       fetchData();
     }
     setLoading(false);
@@ -78,7 +78,7 @@ const AdminDashboard: React.FC = () => {
   const exportToCSV = async () => {
     const res = await fetch(`/api/export/${user.slug}`);
     const data = await res.json();
-    const csvContent = "data:text/csv;charset=utf-8," + "Name,Amount,Dedication,Date\n" + data.map((d: any) => `${d.fullName},${d.amount},${d.dedication},${new Date(d.timestamp).toLocaleDateString()}`).join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," + "Name,Phone,Amount,Dedication,Date\n" + data.map((d: any) => `${d.fullName},${d.phone || ''},${d.amount},${d.dedication},${new Date(d.timestamp).toLocaleDateString()}`).join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
     link.download = `donations_${user.slug}.csv`;
@@ -166,7 +166,6 @@ const AdminDashboard: React.FC = () => {
                </div>
             </div>
 
-            {/* הגדרות תצוגה - תיקון כפתורי רזולוציה למסכי לדים */}
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-6">
               <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Monitor size={16}/> הגדרות רזולוציה ומסך (4K Support)</h3>
               <div className="space-y-6">
@@ -221,11 +220,19 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="overflow-x-auto max-h-80 overflow-y-auto">
               <table className="w-full text-right text-sm">
-                <thead className="bg-slate-50 sticky top-0"><tr><th className="p-2">שם</th><th className="p-2">סכום</th><th className="p-2">מחיקה</th></tr></thead>
+                <thead className="bg-slate-50 sticky top-0">
+                  <tr>
+                    <th className="p-2">שם</th>
+                    <th className="p-2">טלפון</th>
+                    <th className="p-2">סכום</th>
+                    <th className="p-2">מחיקה</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {donations.map((d) => (
                     <tr key={d._id} className="border-b">
                       <td className="p-2">{d.fullName}</td>
+                      <td className="p-2 text-slate-400 font-mono">{d.phone || '-'}</td>
                       <td className="p-2 font-bold text-emerald-600">{d.amount}</td>
                       <td className="p-2"><button onClick={async()=>{ if(confirm('למחוק?')) { await fetch(`/api/donations/${d._id}`, {method:'DELETE'}); fetchData(); }}} className="text-red-300 hover:text-red-500"><Trash2 size={16}/></button></td>
                     </tr>
@@ -245,6 +252,7 @@ const AdminDashboard: React.FC = () => {
              <h2 className="font-bold mb-4 flex gap-2"><Send className="text-emerald-500"/> הוספת תרומה</h2>
              <form onSubmit={handleAddDonation} className="space-y-3">
                <input placeholder="שם מלא" className="w-full border p-3 rounded-xl" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} required />
+               <input placeholder="מספר טלפון (אופציונלי)" className="w-full border p-3 rounded-xl" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                <input type="number" placeholder="סכום" className="w-full border p-3 rounded-xl font-bold" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required />
                <textarea placeholder="הקדשה" className="w-full border p-3 rounded-xl" value={formData.dedication} onChange={e => setFormData({...formData, dedication: e.target.value})} />
                <button disabled={loading} className="w-full bg-emerald-500 text-white p-3 rounded-xl font-bold shadow-lg shadow-emerald-100">שגר למסך</button>

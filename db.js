@@ -38,6 +38,7 @@ const CampaignSchema = new mongoose.Schema({
 const DonationSchema = new mongoose.Schema({
   campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
   fullName: { type: String, required: true }, 
+  phone: { type: String, default: '' }, // הוספת שדה טלפון למסד הנתונים
   amount: { type: Number, required: true },
   dedication: { type: String, default: '' },
   timestamp: { type: Date, default: Date.now },
