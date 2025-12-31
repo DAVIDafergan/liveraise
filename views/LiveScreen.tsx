@@ -121,21 +121,23 @@ const LiveScreen: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* באנר ולוגו בתוך מסגרת עגולה */}
+      {/* באנר ולוגו ריחף - חזרה למבנה ריבועי/טבעי ללא מסגרת */}
       {campaign.bannerUrl && (
         <div className="w-full h-[200px] overflow-hidden shadow-2xl relative shrink-0 border-b border-white/5">
           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
           <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(to top, ${campaign.backgroundColor || '#020617'}, transparent)` }} />
           {campaign.logoUrl && (
-            <div className="absolute bottom-4 right-12 z-30">
-              <div className="h-40 w-40 rounded-full border-4 border-white bg-white shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex items-center justify-center">
-                <img 
-                  src={campaign.logoUrl} 
-                  alt="Logo" 
-                  className="h-full w-full object-contain p-2" 
-                />
-              </div>
-            </div>
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-4 right-12 z-30"
+            >
+              <img 
+                src={campaign.logoUrl} 
+                alt="Logo" 
+                className="h-36 w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]" 
+              />
+            </motion.div>
           )}
         </div>
       )}
