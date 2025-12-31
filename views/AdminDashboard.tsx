@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Settings, Trash2, ExternalLink, LogOut, QrCode, Layout, History, Save, Download, Palette, Image as ImageIcon, LayoutTemplate, Monitor, RefreshCcw } from 'lucide-react';
+import { Send, Settings, Trash2, ExternalLink, LogOut, QrCode, Layout, History, Save, Download, Palette, Image as ImageIcon, LayoutTemplate, Monitor, RefreshCcw, Maximize } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ const AdminDashboard: React.FC = () => {
     setLoading(false);
   };
 
-  // פונקציית איפוס קמפיין מעודכנת - מאפסת הכל מידית
+  // פונקציית איפוס קמפיין מעודכנת - מוחקת הכל מהמסך ומהשרת
   const handleResetCampaign = async () => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק את כל נתוני הקמפיין, לאפס את התרומות והסכום שנאסף? פעולה זו אינה ניתנת לביטול.')) {
       setLoading(true);
@@ -65,7 +65,7 @@ const AdminDashboard: React.FC = () => {
             currentAmount: 0,
             manualStartingAmount: 0
           }));
-          alert('הקמפיין אופס בהצלחה');
+          alert('הקמפיין אופס בהצלחה! המסך כעת נקי.');
           fetchData();
         }
       } catch (e) {
@@ -95,7 +95,6 @@ const AdminDashboard: React.FC = () => {
           <h1 className="text-xl font-bold">LiveRaise Admin</h1>
         </div>
         <div className="flex gap-4 items-center">
-          {/* כפתור איפוס קמפיין */}
           <button 
             onClick={handleResetCampaign}
             className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold border border-red-100 hover:bg-red-100 transition-colors text-sm"
@@ -123,7 +122,6 @@ const AdminDashboard: React.FC = () => {
                  <label className="text-xs font-bold text-slate-500">יעד גיוס</label>
                  <input type="number" className="w-full border p-2 rounded-lg" value={campaign.targetAmount} onChange={e => setCampaign({...campaign, targetAmount: Number(e.target.value)})} />
                </div>
-               {/* הוספת אפשרות לעדכון סכום שנאסף מראש */}
                <div className="space-y-1 col-span-2 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
                  <label className="text-xs font-bold text-emerald-700">כמה אספו כבר מראש (מתוך היעד)</label>
                  <input type="number" className="w-full border p-2 rounded-lg" value={campaign.manualStartingAmount} onChange={e => setCampaign({...campaign, manualStartingAmount: Number(e.target.value)})} />
@@ -131,7 +129,6 @@ const AdminDashboard: React.FC = () => {
                </div>
             </div>
             
-            {/* מיתוג אישי */}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 space-y-4">
                <h3 className="font-bold text-sm flex gap-2 items-center text-slate-600"><Palette size={16}/> עיצוב ומיתוג</h3>
                
@@ -156,7 +153,7 @@ const AdminDashboard: React.FC = () => {
                      <ImageIcon size={18} className="text-slate-400"/>
                      <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: PNG שקוף 500x500" value={campaign.logoUrl || ''} onChange={e => setCampaign({...campaign, logoUrl: e.target.value})} />
                    </div>
-                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: העלה לוגו בפורמט PNG שקוף, גודל מומלץ 500x500 פיקסלים.</p>
+                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: PNG שקוף, 500x500px.</p>
                  </div>
                  <div className="col-span-1">
                    <label className="text-xs font-bold block mb-1">קישור לבאנר עליון (URL)</label>
@@ -164,19 +161,42 @@ const AdminDashboard: React.FC = () => {
                      <LayoutTemplate size={18} className="text-slate-400"/>
                      <input className="border p-2 rounded-lg w-full text-left" placeholder="מומלץ: 1920x200" value={campaign.bannerUrl || ''} onChange={e => setCampaign({...campaign, bannerUrl: e.target.value})} />
                    </div>
-                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: עבור פריסה מלאה, השתמש בתמונה בגודל 1920x200 פיקסלים.</p>
+                   <p className="text-[10px] text-indigo-500 mt-1 font-medium">הנחיות: פריסה מלאה 1920x200px.</p>
                  </div>
                </div>
             </div>
 
-            {/* הגדרות תצוגה ורזולוציה */}
+            {/* הגדרות תצוגה ורזולוציה עם מסכים ספציפיים */}
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-6">
               <h3 className="font-bold text-sm flex gap-2 items-center text-indigo-700 mb-4"><Monitor size={16}/> הגדרות רזולוציה ומסך</h3>
-              <div className="space-y-4">
+              <div className="space-y-6">
+                <div>
+                   <label className="text-xs font-bold mb-3 block">התאמה למסכי לדים (Presets):</label>
+                   <div className="flex flex-wrap gap-3">
+                      <button 
+                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: 2688, height: 768, scale: 1.0 }})}
+                        className="bg-white border-2 border-indigo-200 hover:border-indigo-600 px-4 py-2 rounded-xl text-xs font-black transition-all"
+                      >
+                         מסך השכרה (2688x768)
+                      </button>
+                      <button 
+                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: 2720, height: 384, scale: 1.0 }})}
+                        className="bg-white border-2 border-indigo-200 hover:border-indigo-600 px-4 py-2 rounded-xl text-xs font-black transition-all"
+                      >
+                         מסך אולם (2720x384)
+                      </button>
+                      <button 
+                        onClick={() => setCampaign({...campaign, displaySettings: { ...campaign.displaySettings, width: undefined, height: undefined, scale: 1.0 }})}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black transition-all flex gap-2 items-center"
+                      >
+                         <Maximize size={14}/> מסך רגיל (Full)
+                      </button>
+                   </div>
+                </div>
+
                 <div>
                   <div className="flex justify-between mb-2">
                     <label className="text-xs font-bold">קנה מידה (Zoom): {campaign.displaySettings?.scale || 1.0}x</label>
-                    <span className="text-xs text-slate-400">מתאים למסכי ענק / לדים</span>
                   </div>
                   <input 
                     type="range" 
@@ -190,11 +210,6 @@ const AdminDashboard: React.FC = () => {
                       displaySettings: { ...campaign.displaySettings, scale: Number(e.target.value) }
                     })} 
                   />
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1" dir="ltr">
-                    <span>0.5x</span>
-                    <span>1.0x (Default)</span>
-                    <span>3.0x</span>
-                  </div>
                 </div>
               </div>
             </div>
