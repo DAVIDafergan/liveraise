@@ -10,7 +10,9 @@ const LiveScreen: React.FC = () => {
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const [data, setData] = useState<any>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  // מצב חדש למערך של כרטיסי תרומה שקופצים
   const [notifications, setNotifications] = useState<any[]>([]);
+  // רפרנס לצליל
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const fetchStats = async () => {
@@ -18,8 +20,8 @@ const LiveScreen: React.FC = () => {
       const res = await fetch(`/api/data/${slug}`);
       const json = await res.json();
       
+      // השוואת נתונים בשביל התראות וקונפטי
       setData((prevData: any) => {
-        // בדיקה אם נכנסה תרומה חדשה להפעלת התראות
         if (prevData && json.campaign.currentAmount > prevData.campaign.currentAmount) {
           setShowConfetti(true);
           const newDonationId = Date.now();
@@ -47,13 +49,17 @@ const LiveScreen: React.FC = () => {
     fetchStats();
     const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
-  }, [slug]);
+  }, [slug]); // הסרת data מה-dependencies כדי למנוע לולאה אינסופית המונעת עדכון צבע
 
   if (!data) return <div className="h-screen bg-[#020617] flex items-center justify-center text-white font-sans">טוען נתונים...</div>;
 
   const { campaign, donations } = data;
+  
+  // חישוב מדויק של כמה נאסף מתוך היעד: סכום המערכת + סכום שהוגדר מראש בניהול
   const totalRaised = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
   const progress = Math.min((totalRaised / (campaign.targetAmount || 1)) * 100, 100);
+
+  // שימוש בכל התרומות עבור הגלילה האינסופית - שכפול המערך ליצירת לולאה חלקה
   const allDonations = [...donations, ...donations, ...donations, ...donations]; 
 
   // חישוב והחלת מידות המסך והרקע בצורה דינמית (תומך 4K)
@@ -83,9 +89,9 @@ const LiveScreen: React.FC = () => {
           0% { transform: translateY(0); }
           100% { transform: translateY(-50%); }
         }
-        .scroll-marquee { animation: scrollUp 95s linear infinite; } /* גלילה מהירה מעט יותר */
+        .scroll-marquee { animation: scrollUp 45s linear infinite; } /* מהירות גלילה הוגברה משמעותית ל-45 שניות */
         .mask-fade { mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent); }
-        .animate-marquee { display: flex; animation: marquee 50s linear infinite; }
+        .animate-marquee { display: flex; animation: marquee 20s linear infinite; } /* מהירות סרגל תחתון הוגברה ל-20 שניות */
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
       `}</style>
 
@@ -115,18 +121,20 @@ const LiveScreen: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* באנר ולוגו ריחף ללא מסגרת וללא תזוזה */}
+      {/* באנר ולוגו בתוך מסגרת עגולה */}
       {campaign.bannerUrl && (
         <div className="w-full h-[200px] overflow-hidden shadow-2xl relative shrink-0 border-b border-white/5">
           <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
           <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(to top, ${campaign.backgroundColor || '#020617'}, transparent)` }} />
           {campaign.logoUrl && (
             <div className="absolute bottom-4 right-12 z-30">
-              <img 
-                src={campaign.logoUrl} 
-                alt="Logo" 
-                className="h-32 w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]" 
-              />
+              <div className="h-40 w-40 rounded-full border-4 border-white bg-white shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex items-center justify-center">
+                <img 
+                  src={campaign.logoUrl} 
+                  alt="Logo" 
+                  className="h-full w-full object-contain p-2" 
+                />
+              </div>
             </div>
           )}
         </div>
@@ -150,6 +158,7 @@ const LiveScreen: React.FC = () => {
 
         {/* מד התקדמות */}
         <div className="bg-white/5 p-4 rounded-[1.5rem] border border-white/10 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full" />
           <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
             <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1.5 }} className="h-full rounded-full relative" style={{ backgroundColor: campaign.themeColor }} />
           </div>
