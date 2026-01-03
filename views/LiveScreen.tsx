@@ -52,12 +52,24 @@ const LiveScreen: React.FC = () => {
 
   const { campaign, donations } = data;
   const totalRaised = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
-  
-  // הכפלת תרומות לגלילה חלקה
   const allDonations = [...donations, ...donations, ...donations, ...donations];
 
+  // הגדרות גודל וזום מהדשבורד
+  const screenStyles: any = {
+    backgroundColor: campaign.backgroundColor || '#020408',
+    width: campaign.displaySettings?.width ? `${campaign.displaySettings.width}px` : '100vw',
+    height: campaign.displaySettings?.height ? `${campaign.displaySettings.height}px` : '100vh',
+    zoom: campaign.displaySettings?.scale || 1.0,
+    margin: '0 auto',
+    overflow: 'hidden',
+    position: 'relative',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  };
+
   return (
-    <div className="live-container" dir="rtl">
+    <div className="live-container" dir="rtl" style={screenStyles}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&family=Rubik:wght@400;700;900&display=swap');
 
@@ -70,15 +82,9 @@ const LiveScreen: React.FC = () => {
         }
 
         .live-container {
-          margin: 0; padding: 0;
-          background-color: var(--bg-color);
           background-image: radial-gradient(circle at 50% -20%, #152445 0%, #000000 70%);
           font-family: 'Frank Ruhl Libre', serif;
-          height: 100vh; width: 100vw;
-          overflow: hidden;
           color: white;
-          position: relative;
-          display: flex; justify-content: center; align-items: center;
         }
 
         .stage-container {
@@ -88,7 +94,6 @@ const LiveScreen: React.FC = () => {
           z-index: 10;
         }
 
-        /* --- צדדים --- */
         .side-frame { flex: 1.2; display: flex; flex-direction: column; position: relative; }
         
         .gold-border-box {
@@ -117,7 +122,6 @@ const LiveScreen: React.FC = () => {
           color: #f9d976; font-weight: 700; font-size: 1.2rem; white-space: nowrap;
         }
 
-        /* --- גלילה --- */
         .scrolling-wrapper {
           height: 100%; padding: 40px 10px; box-sizing: border-box;
           mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
@@ -141,36 +145,59 @@ const LiveScreen: React.FC = () => {
         .d-name { font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .d-amount { font-family: 'Rubik'; color: var(--neon-blue); font-weight: 700; }
 
-        /* --- מרכז --- */
-        .center-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-around; }
+        .center-area { flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
         
         .total-wrapper {
           padding: 3px; background: var(--gold-shine); background-size: 200% auto;
           animation: shine-gold 3s linear infinite; border-radius: 20px;
+          width: 90%;
         }
 
         .total-inner {
           background: radial-gradient(circle, #0e1a35 0%, #000 100%);
-          padding: 20px 40px; border-radius: 18px; text-align: center;
+          padding: 30px 20px; border-radius: 18px; text-align: center;
         }
 
         .total-val {
-          font-family: 'Rubik'; font-size: 3.5rem; font-weight: 900;
+          font-family: 'Rubik'; font-size: 4.5rem; font-weight: 900;
           background: linear-gradient(to bottom, #ffffff, #a1a1a1);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          line-height: 1;
+        }
+
+        .latest-donation-center {
+          text-align: center;
+          position: relative;
+          width: 100%;
+          min-height: 120px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .latest-name { font-size: 2.2rem; font-weight: 900; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+        .latest-amount { font-family: 'Rubik'; font-size: 3rem; color: var(--neon-blue); font-weight: 900; }
+        
+        .gold-sparkle-element {
+          width: 200px; height: 4px;
+          background: var(--gold-shine);
+          background-size: 200% auto;
+          animation: shine-gold 2s linear infinite;
+          margin-top: 10px;
+          box-shadow: 0 0 15px #f9d976;
+          border-radius: 2px;
         }
 
         .logo-box {
-          width: 260px; height: 260px; border-radius: 50%;
+          width: 220px; height: 220px; border-radius: 50%;
           border: 4px double #d4af37; background: #000;
           display: flex; justify-content: center; align-items: center; position: relative;
         }
         
-        .logo-img { max-width: 80%; max-height: 80%; object-contain: contain; }
+        .logo-img { max-width: 80%; max-height: 80%; object-fit: contain; }
 
-        .verse { font-size: 1.5rem; color: #d4af37; text-align: center; border-bottom: 1px solid rgba(212,175,55,0.3); }
+        .verse { font-size: 1.4rem; color: #d4af37; text-align: center; border-bottom: 1px solid rgba(212,175,55,0.3); max-width: 80%; }
 
-        /* אורות */
         .beam {
           position: absolute; top: -10%; width: 300px; height: 120%;
           background: radial-gradient(ellipse at center, rgba(0, 242, 255, 0.03) 0%, transparent 70%);
@@ -183,29 +210,6 @@ const LiveScreen: React.FC = () => {
 
       <div className="beam" style={{ left: '5%' }}></div>
       <div className="beam" style={{ right: '5%' }}></div>
-
-      {/* התראות קופצות */}
-      <div className="fixed right-8 top-24 z-[100] flex flex-col gap-4">
-        <AnimatePresence>
-          {notifications.map((notif) => (
-            <motion.div
-              key={notif.id}
-              initial={{ x: 400, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 400, opacity: 0 }}
-              className="bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border-l-8 flex items-center gap-4 min-w-[320px]"
-              style={{ borderLeftColor: campaign.themeColor }}
-            >
-              <Heart className="text-red-500 fill-red-500" size={24} />
-              <div>
-                <p className="text-xs font-bold opacity-50 uppercase">תרומה חדשה!</p>
-                <h4 className="text-xl font-black">{notif.fullName}</h4>
-                <p className="text-2xl font-black" style={{ color: '#1e3a8a' }}>₪{notif.amount.toLocaleString()}</p>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
 
       <div className="stage-container">
         {/* צד ימין */}
@@ -232,10 +236,30 @@ const LiveScreen: React.FC = () => {
           <div className="total-wrapper">
             <div className="total-inner">
               <div className="total-val">₪{totalRaised.toLocaleString()}</div>
-              <div className="text-gold-400 text-sm tracking-widest mt-2 uppercase" style={{ color: '#d4af37' }}>
+              <div className="text-gold-400 text-sm tracking-widest mt-2 uppercase" style={{ color: '#d4af37', fontWeight: 700 }}>
                 סה"כ התחייבויות
               </div>
             </div>
+          </div>
+
+          {/* תרומה אחרונה במרכז */}
+          <div className="latest-donation-center">
+            <AnimatePresence mode="wait">
+              {donations[0] && (
+                <motion.div
+                  key={donations[0].id || donations[0].fullName}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="flex flex-col items-center"
+                >
+                  <span className="latest-name">{donations[0].fullName}</span>
+                  <span className="latest-amount">₪{donations[0].amount.toLocaleString()}</span>
+                  <div className="gold-sparkle-element"></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="logo-box">
@@ -243,7 +267,7 @@ const LiveScreen: React.FC = () => {
               <img src={campaign.logoUrl} className="logo-img" alt="logo" />
             ) : (
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">{campaign.name}</div>
+                <div className="text-xl font-bold text-white">{campaign.name}</div>
               </div>
             )}
           </div>
@@ -260,7 +284,6 @@ const LiveScreen: React.FC = () => {
             <div className="inner-screen">
               <div className="scrolling-wrapper">
                 <div className="scroll-content">
-                  {/* גלילה זהה או שונה - כאן שמתי את אותו המערך למראה מלא */}
                   {allDonations.slice().reverse().map((d, i) => (
                     <div key={i} className="donor-card">
                       <span className="d-name">{d.fullName}</span>
