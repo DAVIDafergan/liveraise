@@ -16,7 +16,7 @@ const LiveScreen: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  /* ================= EXISTING LOGIC – UNTOUCHED ================= */
+  /* ================= DATA FETCH – ORIGINAL LOGIC ================= */
 
   const fetchStats = async () => {
     try {
@@ -77,6 +77,10 @@ const LiveScreen: React.FC = () => {
     (campaign.currentAmount || 0) +
     (campaign.manualStartingAmount || 0);
 
+  const topDonors = [...donations]
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 8);
+
   const screenStyles: any = {
     width: campaign.displaySettings?.width
       ? `${campaign.displaySettings.width}px`
@@ -88,13 +92,13 @@ const LiveScreen: React.FC = () => {
     margin: '0 auto',
     position: 'relative',
     overflow: 'hidden',
-    background: 'radial-gradient(circle at top, #101a3a, #020617 60%)',
+    background:
+      'radial-gradient(circle at top, #0c1535, #020617 65%)',
   };
-
-  /* ================= UI ================= */
 
   return (
     <div dir="rtl" style={screenStyles} className="text-white font-sans">
+
       <audio
         ref={audioRef}
         src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"
@@ -117,7 +121,7 @@ const LiveScreen: React.FC = () => {
         />
       )}
 
-      {/* ================= CENTER DONATION ================= */}
+      {/* ===== CENTER DONATION ===== */}
       <AnimatePresence>
         {centerDonation && (
           <motion.div
@@ -144,7 +148,7 @@ const LiveScreen: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* ================= HEADER ================= */}
+      {/* ===== HEADER ===== */}
       <div className="h-[140px] flex flex-col items-center justify-center">
         <div className="tracking-[0.4em] text-sm opacity-60">
           סה״כ נאסף
@@ -154,16 +158,24 @@ const LiveScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* ================= PANELS ================= */}
-      <div className="absolute top-[180px] left-[40px] w-[380px]">
-        <RoyalPanel title="השותפים" list={campaign.partners} />
-      </div>
+      {/* ===== CENTER BANNER ===== */}
+      {campaign.bannerUrl && (
+        <div className="absolute top-[160px] left-1/2 -translate-x-1/2">
+          <img
+            src={campaign.bannerUrl}
+            alt="Banner"
+            className="h-[180px] object-contain drop-shadow-2xl"
+          />
+        </div>
+      )}
 
-      <div className="absolute top-[180px] right-[40px] w-[380px]">
-        <RoyalPanel title="השותפים" list={campaign.partners} />
-      </div>
+      {/* ===== LEFT PANEL ===== */}
+      <SidePanel title="השותפים" list={topDonors} side="left" />
 
-      {/* ================= BOTTOM NOTIFICATIONS ================= */}
+      {/* ===== RIGHT PANEL ===== */}
+      <SidePanel title="השותפים" list={topDonors} side="right" />
+
+      {/* ===== FLOATING NOTIFICATIONS ===== */}
       <div className="absolute bottom-6 right-8 flex flex-col gap-4">
         <AnimatePresence>
           {notifications.map((n) => (
@@ -192,26 +204,28 @@ const LiveScreen: React.FC = () => {
   );
 };
 
-/* ================= ROYAL PANEL COMPONENT ================= */
+/* ===== SIDE PANEL ===== */
 
-const RoyalPanel = ({ title, list }: any) => (
+const SidePanel = ({ title, list, side }: any) => (
   <div
-    className="
+    className={`
+      absolute top-[220px] ${side === 'left' ? 'left-10' : 'right-10'}
+      w-[360px]
       bg-gradient-to-b from-[#1a233f] to-[#05070f]
       border-4 border-[#d4af37]
       rounded-[1.5rem]
       shadow-[0_0_60px_#d4af3740]
       overflow-hidden
-    "
+    `}
   >
     <div className="text-center py-4 text-3xl font-black text-[#d4af37]">
       {title}
     </div>
 
     <div className="divide-y divide-[#d4af3720]">
-      {list?.map((p: any, i: number) => (
+      {list.map((p: any, i: number) => (
         <div key={i} className="px-6 py-4 text-center">
-          <div className="text-xl font-black">{p.name}</div>
+          <div className="text-xl font-black">{p.fullName}</div>
           <div className="text-2xl font-black text-[#d4af37]">
             ₪{p.amount.toLocaleString()}
           </div>
