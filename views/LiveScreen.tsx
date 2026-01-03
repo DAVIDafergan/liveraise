@@ -86,7 +86,6 @@ const LiveScreen: React.FC = () => {
           position: relative;
         }
 
-        /* נצנצים עדינים יותר */
         .live-container::before {
           content: "";
           position: absolute;
@@ -107,8 +106,8 @@ const LiveScreen: React.FC = () => {
         }
 
         .stage-container {
-          width: 99%; height: 94%;
-          display: flex; justify-content: space-between; gap: 30px; padding: 20px; box-sizing: border-box;
+          width: 99%; height: 96%;
+          display: flex; justify-content: space-between; gap: 30px; padding: 25px; box-sizing: border-box;
           z-index: 10;
         }
 
@@ -135,20 +134,20 @@ const LiveScreen: React.FC = () => {
         }
 
         .header-inner {
-          background: #1a1005; padding: 8px 50px;
+          background: #1a1005; padding: 10px 55px;
           clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
-          color: #f9d976; font-weight: 900; font-size: 1.8rem; white-space: nowrap;
+          color: #f9d976; font-weight: 900; font-size: 2rem; white-space: nowrap;
           letter-spacing: 2px;
         }
 
         .scrolling-wrapper {
-          height: 100%; padding: 60px 15px; box-sizing: border-box;
+          height: 100%; padding: 70px 15px; box-sizing: border-box;
           mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
         }
 
         .scroll-content {
-          display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
-          animation: scrollUp 70s linear infinite;
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+          animation: scrollUp 75s linear infinite;
         }
 
         @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
@@ -157,58 +156,63 @@ const LiveScreen: React.FC = () => {
         .donor-card {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(249, 217, 118, 0.15);
-          border-radius: 12px; padding: 20px 10px; text-align: center;
+          border-radius: 12px; padding: 22px 10px; text-align: center;
           display: flex; flex-direction: column; justify-content: center;
         }
 
         .d-name { 
-          font-weight: 900; font-size: 2.2rem; 
+          font-weight: 900; font-size: 2.3rem; 
           background: var(--gold-text);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          margin-bottom: 5px; 
+          margin-bottom: 6px; 
         }
-        .d-amount { font-family: 'Rubik'; color: #fff; font-weight: 700; font-size: 1.8rem; opacity: 0.9; }
+        .d-amount { font-family: 'Rubik'; color: #fff; font-weight: 700; font-size: 1.9rem; opacity: 0.9; }
 
-        .center-area { flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 20px 0; }
+        .center-area { 
+          flex: 1.6; 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: space-evenly; 
+          padding: 30px 0; 
+        }
         
         .total-container { text-align: center; position: relative; }
         .total-val {
-          font-family: 'Rubik'; font-size: 4.5rem; font-weight: 900;
+          font-family: 'Rubik'; font-size: 6.5rem; font-weight: 900;
           color: #fff; line-height: 1; margin: 0;
-          filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
+          filter: drop-shadow(0 0 25px rgba(255,255,255,0.25));
         }
         .total-label { 
-          color: #d4af37; font-weight: 900; font-size: 1.2rem; letter-spacing: 3px; margin-top: 10px; 
-          border-top: 1px solid rgba(212, 175, 55, 0.3); padding-top: 5px; display: inline-block;
+          color: #d4af37; font-weight: 900; font-size: 1.5rem; letter-spacing: 4px; margin-top: 12px; 
+          border-top: 1px solid rgba(212, 175, 55, 0.4); padding-top: 8px; display: inline-block;
         }
 
         .latest-donation-center {
-          text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .latest-name { 
-          font-size: 4.2rem; font-weight: 900; 
+          font-size: 3.2rem; font-weight: 900; 
           background: var(--gold-text);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           line-height: 1.1; 
         }
-        .latest-amount { font-family: 'Rubik'; font-size: 3.8rem; color: var(--neon-blue); font-weight: 900; margin-top: 5px; }
+        .latest-amount { font-family: 'Rubik'; font-size: 2.8rem; color: var(--neon-blue); font-weight: 900; margin-top: 4px; }
         
         .gold-sparkle-element {
-          width: 300px; height: 3px;
+          width: 250px; height: 3px;
           background: var(--gold-shine); background-size: 200% auto;
           animation: shine-gold 3s linear infinite;
-          margin-top: 15px; border-radius: 10px; opacity: 0.8;
+          margin-top: 12px; border-radius: 10px; opacity: 0.8;
         }
 
-        .logo-box { width: 300px; max-height: 200px; display: flex; justify-content: center; align-items: center; }
-        .logo-img { max-width: 100%; max-height: 180px; object-fit: contain; }
-
-        .verse { font-size: 2rem; color: #d4af37; text-align: center; font-weight: 700; opacity: 0.8; }
+        .logo-box { width: 320px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; }
+        .logo-img { max-width: 100%; max-height: 220px; object-fit: contain; }
 
         .beam {
-          position: absolute; top: 0; width: 400px; height: 100%;
+          position: absolute; top: 0; width: 450px; height: 100%;
           background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.02) 0%, transparent 70%);
-          filter: blur(120px); pointer-events: none;
+          filter: blur(130px); pointer-events: none;
         }
       `}</style>
 
@@ -240,13 +244,13 @@ const LiveScreen: React.FC = () => {
 
         {/* מרכז */}
         <div className="center-area">
-          {/* סכום כללי ממורכז וקטן יותר */}
+          {/* סכום כללי - הוגדל */}
           <div className="total-container">
              <div className="total-val">₪{totalRaised.toLocaleString()}</div>
              <div className="total-label">סה"כ התחייבויות</div>
           </div>
 
-          {/* תרומה אחרונה ממורכזת וקטנה יותר */}
+          {/* תרומה אחרונה - הוקטנה */}
           <div className="latest-donation-center">
             <AnimatePresence mode="wait">
               {donations[0] && (
@@ -266,15 +270,11 @@ const LiveScreen: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* לוגו רגיל על הרקע ללא מסגרת עיגול */}
+          {/* לוגו */}
           <div className="logo-box">
             {campaign.logoUrl && (
               <img src={campaign.logoUrl} className="logo-img" alt="logo" />
             )}
-          </div>
-
-          <div className="verse">
-            {campaign.subTitle || '"וְהֵבִיאוּ אֶת כָּל הַתְּרוּמָה"'}
           </div>
         </div>
 
