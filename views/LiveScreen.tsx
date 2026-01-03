@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Target, Heart, TrendingUp } from 'lucide-react';
+import { Users, Target, Heart, TrendingUp, Award } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 
@@ -11,7 +11,7 @@ const LiveScreen: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [lastDonation, setLastDonation] = useState<any>(null); // לתצוגה המרכזית הגדולה
+  const [lastDonation, setLastDonation] = useState<any>(null); 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const fetchStats = async () => {
@@ -25,7 +25,7 @@ const LiveScreen: React.FC = () => {
           const newDonationId = Date.now();
           const donationWithId = { ...newDonation, id: newDonationId };
           
-          setLastDonation(donationWithId); // מציג באמצע
+          setLastDonation(donationWithId);
           setShowConfetti(true);
           
           if (audioRef.current) {
@@ -34,7 +34,6 @@ const LiveScreen: React.FC = () => {
           }
 
           setTimeout(() => setShowConfetti(false), 5000);
-          // אחרי 3 שניות מנקה את המרכז ומכניס לרשימת הצד
           setTimeout(() => {
             setLastDonation(null);
             setNotifications(prev => [donationWithId, ...prev].slice(0, 16));
@@ -53,151 +52,164 @@ const LiveScreen: React.FC = () => {
     return () => clearInterval(interval);
   }, [slug]);
 
-  if (!data) return <div className="h-screen bg-[#020617] flex items-center justify-center text-white font-sans">טוען נתונים...</div>;
+  if (!data) return <div className="h-screen bg-[#020617] flex items-center justify-center text-white font-bold text-2xl">טוען נתונים...</div>;
 
   const { campaign, donations } = data;
   const totalRaised = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
   const progress = Math.min((totalRaised / (campaign.targetAmount || 1)) * 100, 100);
 
-  // חלוקת תרומות לצדדים (לפי התמונה)
-  const leftDonations = donations.slice(0, 4);
-  const rightDonations = donations.slice(4, 8);
+  // חלוקת תרומות ל-2 עמודות בכל צד (8 תרומות לכל פאנל צדדי)
+  const rightSideDonations = donations.slice(0, 12);
+  const leftSideDonations = donations.slice(12, 24);
 
   const screenStyles: any = {
-    backgroundColor: campaign.backgroundColor || '#020308',
-    backgroundImage: `radial-gradient(circle at center, ${campaign.themeColor}22 0%, transparent 70%)`,
+    backgroundColor: '#050a18',
+    backgroundImage: `radial-gradient(circle at center, #1e3a8a 0%, #050a18 100%)`,
     width: '100vw',
     height: '100vh',
     overflow: 'hidden',
-    position: 'relative'
+    position: 'relative',
+    color: '#f8fafc'
   };
 
-  // קומפוננטת כרטיס תורם בסגנון התמונה
-  const DonorCard = ({ donation, side }: { donation: any, side: string }) => (
+  // עיצוב "עיטור" מכובד לתורם
+  const DonorEntry = ({ donation, index }: { donation: any, index: number }) => (
     <motion.div 
-      initial={{ opacity: 0, x: side === 'right' ? 50 : -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="relative mb-4 w-full"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.05 }}
+      className="relative group"
     >
-      <div className="bg-[#1a2b4b]/80 border-2 border-orange-400/50 rounded-lg p-3 shadow-[0_0_15px_rgba(251,146,60,0.2)] backdrop-blur-md overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-orange-400/10 to-transparent pointer-events-none" />
-        <div className="flex flex-col items-center justify-center text-center">
-          <span className="text-2xl font-black text-white drop-shadow-md mb-1">{donation.fullName}</span>
-          <span className="text-3xl font-black text-orange-400 tabular-nums">₪{donation.amount.toLocaleString()}</span>
-        </div>
+      <div className="bg-blue-900/30 border-b border-amber-500/30 py-3 px-4 flex flex-col items-center transition-all hover:bg-amber-500/10">
+        <span className="text-xl font-medium text-blue-100/90 mb-1 truncate w-full text-center">
+          {donation.fullName}
+        </span>
+        <span className="text-3xl font-black text-amber-400 drop-shadow-sm">
+          ₪{donation.amount.toLocaleString()}
+        </span>
       </div>
+      {/* עיטור פינתי קטן בסגנון קלאסי */}
+      <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-amber-500/50" />
+      <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-amber-500/50" />
     </motion.div>
   );
 
   return (
-    <div className="text-white font-sans overflow-hidden" dir="rtl" style={screenStyles}>
+    <div className="font-sans antialiased" dir="rtl" style={screenStyles}>
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" />
 
+      {/* שכבת טקסטורה יוקרתית */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+
       <style>{`
-        @keyframes pulse-gold { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-        .gold-glow { text-shadow: 0 0 20px rgba(251, 146, 60, 0.8); }
-        .bg-panel { background: linear-gradient(180deg, rgba(26,43,75,0.9) 0%, rgba(10,15,30,0.95) 100%); }
+        @font-face { font-family: 'Assistant'; src: url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap'); }
+        body { font-family: 'Assistant', sans-serif; }
+        .gold-border { border: 2px solid transparent; border-image: linear-gradient(to bottom, #d4af37, #996515) 1; }
+        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); }
+        .text-gold { color: #d4af37; background: linear-gradient(to bottom, #fde68a, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
       `}</style>
 
-      {showConfetti && <Confetti width={windowWidth} height={windowHeight} colors={[campaign.themeColor, '#fb923c', '#ffffff']} />}
+      {showConfetti && <Confetti width={windowWidth} height={windowHeight} colors={['#d4af37', '#f59e0b', '#ffffff']} opacity={0.6} />}
 
-      {/* שכבת התראה מרכזית גדולה */}
+      {/* התראה מרכזית ענקית בעיצוב מלכותי */}
       <AnimatePresence>
         {lastDonation && (
           <motion.div 
-            initial={{ scale: 0, opacity: 0, y: 100 }}
-            animate={{ scale: 1.2, opacity: 1, y: 0 }}
-            exit={{ scale: 0.5, opacity: 0, x: 500 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.1, opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm"
           >
-            <div className="bg-[#1e3a8a] border-4 border-orange-400 p-12 rounded-[3rem] shadow-[0_0_100px_rgba(251,146,60,0.5)] text-center min-w-[600px] relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-                <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
-                    <Heart className="text-orange-400 mx-auto mb-4 fill-orange-400" size={80} />
-                </motion.div>
-                <h2 className="text-4xl font-black mb-2 opacity-80 uppercase tracking-widest text-orange-200">תרומה חדשה!</h2>
-                <h3 className="text-7xl font-black mb-6 text-white">{lastDonation.fullName}</h3>
-                <div className="text-8xl font-black text-orange-400 gold-glow">
+            <div className="bg-[#0f172a] border-[6px] border-amber-500 p-16 rounded-none shadow-[0_0_100px_rgba(217,119,6,0.4)] text-center min-w-[800px] relative">
+                <div className="absolute top-4 left-4 right-4 bottom-4 border border-amber-500/20" />
+                <Award className="text-amber-500 mx-auto mb-6" size={100} />
+                <h2 className="text-4xl font-bold mb-4 text-amber-200 tracking-[0.2em] uppercase">תרומה חדשה נכנסה</h2>
+                <h3 className="text-8xl font-black mb-8 text-white drop-shadow-lg">{lastDonation.fullName}</h3>
+                <div className="text-9xl font-black text-amber-500">
                    ₪{lastDonation.amount.toLocaleString()}
                 </div>
-                {lastDonation.dedication && <p className="text-3xl italic mt-6 text-orange-100/80">"{lastDonation.dedication}"</p>}
+                {lastDonation.dedication && <p className="text-4xl italic mt-10 text-blue-100 opacity-80">"{lastDonation.dedication}"</p>}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="h-full flex p-8 gap-8 relative z-10">
+      <div className="h-full flex flex-col relative z-10 p-6">
         
-        {/* פאנל ימין - השותפים */}
-        <div className="w-1/4 flex flex-col">
-          <div className="bg-orange-500 text-black text-center py-2 rounded-t-xl font-black text-3xl shadow-lg">השותפים</div>
-          <div className="bg-panel flex-1 rounded-b-xl p-6 border-x-2 border-b-2 border-orange-500/30 shadow-2xl overflow-hidden">
-            {rightDonations.map((d: any, i: number) => <DonorCard key={i} donation={d} side="right" />)}
+        {/* כותרת וסכום מרכזי עליון */}
+        <div className="flex justify-center mb-10">
+          <div className="glass-panel border-2 border-amber-500/40 p-8 rounded-none text-center shadow-2xl relative min-w-[600px]">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 px-6 py-1 text-black font-bold text-xl">
+              עד כה נאסף
+            </div>
+            <div className="text-9xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+              ₪{totalRaised.toLocaleString()}
+            </div>
           </div>
         </div>
 
-        {/* פאנל מרכזי - קמפיין וסכום */}
-        <div className="flex-1 flex flex-col gap-6">
-            {/* סכום כללי עליון */}
-            <div className="relative text-center">
-                <div className="bg-[#1a2b4b] inline-block px-16 py-6 rounded-3xl border-2 border-orange-400/50 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
-                    <p className="text-2xl font-bold text-orange-400 mb-2 uppercase tracking-widest">עד כה התחייבו</p>
-                    <div className="text-8xl font-black text-white tabular-nums tracking-tighter drop-shadow-2xl">
-                        ₪{totalRaised.toLocaleString()}
-                    </div>
-                </div>
+        {/* גוף המסך - 3 חלקים */}
+        <div className="flex-1 flex gap-8 overflow-hidden">
+          
+          {/* פאנל ימין - השותפים (2 עמודות) */}
+          <div className="w-[30%] flex flex-col glass-panel border border-white/10">
+            <div className="bg-amber-600 text-black text-center py-3 font-black text-3xl">השותפים</div>
+            <div className="flex-1 p-4 grid grid-cols-2 gap-x-4 gap-y-2 overflow-hidden items-start content-start">
+              {rightSideDonations.map((d: any, i: number) => <DonorEntry key={i} donation={d} index={i} />)}
             </div>
+          </div>
 
-            {/* לוגו/גרפיקה מרכזית */}
-            <div className="flex-1 flex items-center justify-center relative">
+          {/* מרכז - גרפיקה ומד התקדמות */}
+          <div className="flex-1 flex flex-col justify-between py-4">
+            <div className="flex-1 flex items-center justify-center">
                 {campaign.logoUrl && (
                     <motion.img 
-                        animate={{ y: [0, -15, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                        animate={{ y: [0, -20, 0] }}
+                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                         src={campaign.logoUrl} 
-                        className="max-h-[500px] w-auto drop-shadow-[0_0_50px_rgba(251,146,60,0.3)]"
-                        alt="Campaign Logo"
+                        className="max-h-[450px] w-auto drop-shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+                        alt="Logo"
                     />
                 )}
             </div>
 
-            {/* מד התקדמות */}
-            <div className="w-full bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-xl">
-                <div className="flex justify-between mb-4 font-black text-2xl">
-                    <span className="text-orange-400">{progress.toFixed(1)}%</span>
-                    <span>יעד: ₪{campaign.targetAmount.toLocaleString()}</span>
+            {/* מד התקדמות יוקרתי */}
+            <div className="px-10">
+                <div className="flex justify-between mb-4 font-bold text-3xl text-amber-100">
+                    <span>{progress.toFixed(1)}% הושלמו</span>
+                    <span className="opacity-70">יעד הקמפיין: ₪{campaign.targetAmount.toLocaleString()}</span>
                 </div>
-                <div className="h-8 bg-black/40 rounded-full overflow-hidden border border-white/10 p-1">
+                <div className="h-10 bg-black/50 rounded-none border border-amber-500/30 p-1 relative shadow-inner">
                     <motion.div 
                         initial={{ width: 0 }} 
                         animate={{ width: `${progress}%` }} 
-                        transition={{ duration: 2 }}
-                        className="h-full rounded-full bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600 shadow-[0_0_20px_rgba(251,146,60,0.5)]"
-                    />
+                        transition={{ duration: 2.5, ease: "easeOut" }}
+                        className="h-full bg-gradient-to-r from-amber-700 via-amber-400 to-amber-700 shadow-[0_0_30px_rgba(217,119,6,0.6)] relative"
+                    >
+                        {/* אפקט ברק על המד */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+                    </motion.div>
                 </div>
             </div>
-        </div>
-
-        {/* פאנל שמאל - השותפים */}
-        <div className="w-1/4 flex flex-col">
-          <div className="bg-orange-500 text-black text-center py-2 rounded-t-xl font-black text-3xl shadow-lg">השותפים</div>
-          <div className="bg-panel flex-1 rounded-b-xl p-6 border-x-2 border-b-2 border-orange-500/30 shadow-2xl overflow-hidden">
-            {leftDonations.map((d: any, i: number) => <DonorCard key={i} donation={d} side="left" />)}
           </div>
-        </div>
-      </div>
 
-      {/* פס גלילה תחתון (קיים בקוד המקורי) */}
-      <div className="fixed bottom-0 w-full bg-black/80 py-4 border-t-2 border-orange-500/50 text-2xl font-black overflow-hidden backdrop-blur-md z-50">
-        <div className="flex gap-12 whitespace-nowrap animate-marquee">
-           {donations.concat(donations).map((d: any, i: number) => (
-             <span key={i} className="flex items-center gap-6 text-white/90">
-               <Heart size={22} className="text-orange-400 fill-current"/> 
-               <span>{d.fullName}</span>
-               <span className="px-4 py-1 rounded-full bg-orange-500/20 text-orange-400">₪{d.amount.toLocaleString()}</span>
-               <span className="opacity-20 mx-4">|</span>
-             </span>
-           ))}
+          {/* פאנל שמאל - השותפים (2 עמודות) */}
+          <div className="w-[30%] flex flex-col glass-panel border border-white/10">
+            <div className="bg-amber-600 text-black text-center py-3 font-black text-3xl">השותפים</div>
+            <div className="flex-1 p-4 grid grid-cols-2 gap-x-4 gap-y-2 overflow-hidden items-start content-start">
+              {leftSideDonations.map((d: any, i: number) => <DonorEntry key={i} donation={d} index={i} />)}
+            </div>
+          </div>
+
+        </div>
+
+        {/* קרדיט/סגירה בחלק התחתון במקום הסרגל */}
+        <div className="mt-6 flex justify-between items-center px-10 opacity-50 text-sm tracking-widest uppercase">
+            <span>{campaign.name} • שידור חי</span>
+            <div className="flex gap-4">
+                <Target size={14} />
+                <span>זמן אמת</span>
+            </div>
         </div>
       </div>
     </div>
