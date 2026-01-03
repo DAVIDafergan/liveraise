@@ -75,6 +75,7 @@ const LiveScreen: React.FC = () => {
         :root {
           --bg-color: ${campaign.backgroundColor || '#020408'};
           --gold-shine: linear-gradient(110deg, #8a6e2f 20%, #f9d976 40%, #ffffff 50%, #f9d976 60%, #8a6e2f 80%);
+          --gold-text: linear-gradient(to bottom, #fceea6 0%, #d4af37 100%);
           --neon-blue: #00f2ff;
         }
 
@@ -85,19 +86,18 @@ const LiveScreen: React.FC = () => {
           position: relative;
         }
 
-        /* נצנצים ברקע */
+        /* נצנצים עדינים יותר */
         .live-container::before {
           content: "";
           position: absolute;
           top: 0; left: 0; width: 100%; height: 100%;
           background-image: 
-            radial-gradient(2px 2px at 20px 30px, #f9d976, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 50px 160px, #8a6e2f, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 90px 40px, #f9d976, rgba(0,0,0,0));
-          background-size: 200px 200px;
-          animation: sparkleAnim 10s linear infinite;
-          opacity: 0.3;
+            radial-gradient(1.5px 1.5px at 20px 30px, #f9d976, rgba(0,0,0,0)),
+            radial-gradient(1.5px 1.5px at 100px 150px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1.5px 1.5px at 200px 50px, #d4af37, rgba(0,0,0,0));
+          background-size: 300px 300px;
+          animation: sparkleAnim 15s linear infinite;
+          opacity: 0.2;
           pointer-events: none;
         }
 
@@ -107,115 +107,116 @@ const LiveScreen: React.FC = () => {
         }
 
         .stage-container {
-          width: 99%; height: 96%;
-          display: flex; justify-content: space-between; gap: 20px; padding: 10px; box-sizing: border-box;
+          width: 99%; height: 94%;
+          display: flex; justify-content: space-between; gap: 30px; padding: 20px; box-sizing: border-box;
           z-index: 10;
         }
 
-        .side-frame { flex: 2; display: flex; flex-direction: column; position: relative; }
+        .side-frame { flex: 2.2; display: flex; flex-direction: column; position: relative; }
         
         .gold-border-box {
           flex-grow: 1; padding: 2px;
           background: var(--gold-shine);
           background-size: 200% auto;
-          animation: shine-gold 4s linear infinite;
+          animation: shine-gold 5s linear infinite;
           clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%);
         }
 
         .inner-screen {
-          background: rgba(6, 13, 31, 0.8); width: 100%; height: 100%;
+          background: rgba(6, 13, 31, 0.85); width: 100%; height: 100%;
           clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%);
           overflow: hidden; position: relative;
-          backdrop-blur: 10px;
         }
 
         .header-title {
           position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 20;
-          background: var(--gold-shine); padding: 2px;
+          background: var(--gold-shine); padding: 1.5px;
           clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
         }
 
         .header-inner {
-          background: #1a1005; padding: 10px 60px;
+          background: #1a1005; padding: 8px 50px;
           clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
-          color: #f9d976; font-weight: 900; font-size: 2.2rem; white-space: nowrap;
-          text-shadow: 0 0 10px rgba(249,217,118,0.5);
+          color: #f9d976; font-weight: 900; font-size: 1.8rem; white-space: nowrap;
+          letter-spacing: 2px;
         }
 
         .scrolling-wrapper {
-          height: 100%; padding: 70px 20px; box-sizing: border-box;
+          height: 100%; padding: 60px 15px; box-sizing: border-box;
           mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
         }
 
         .scroll-content {
           display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
-          animation: scrollUp 65s linear infinite;
+          animation: scrollUp 70s linear infinite;
         }
 
         @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
         @keyframes shine-gold { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
 
         .donor-card {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(249, 217, 118, 0.2);
-          border-radius: 15px; padding: 25px 10px; text-align: center;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(249, 217, 118, 0.15);
+          border-radius: 12px; padding: 20px 10px; text-align: center;
           display: flex; flex-direction: column; justify-content: center;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .d-name { font-weight: 900; font-size: 2rem; color: #fff; margin-bottom: 5px; }
-        .d-amount { font-family: 'Rubik'; color: var(--neon-blue); font-weight: 900; font-size: 2.2rem; text-shadow: 0 0 15px rgba(0,242,255,0.5); }
+        .d-name { 
+          font-weight: 900; font-size: 2.2rem; 
+          background: var(--gold-text);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          margin-bottom: 5px; 
+        }
+        .d-amount { font-family: 'Rubik'; color: #fff; font-weight: 700; font-size: 1.8rem; opacity: 0.9; }
 
-        .center-area { flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: space-around; gap: 20px; }
+        .center-area { flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 20px 0; }
         
-        .total-wrapper {
-          position: relative; padding: 10px;
-          border-bottom: 3px solid transparent;
-          border-image: var(--gold-shine) 1;
-          animation: shine-gold 3s linear infinite;
-          text-align: center;
-        }
-
+        .total-container { text-align: center; position: relative; }
         .total-val {
-          font-family: 'Rubik'; font-size: 7.5rem; font-weight: 900;
-          color: #fff; text-shadow: 0 0 30px rgba(255,255,255,0.3);
-          line-height: 1; margin: 0;
+          font-family: 'Rubik'; font-size: 4.5rem; font-weight: 900;
+          color: #fff; line-height: 1; margin: 0;
+          filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
+        }
+        .total-label { 
+          color: #d4af37; font-weight: 900; font-size: 1.2rem; letter-spacing: 3px; margin-top: 10px; 
+          border-top: 1px solid rgba(212, 175, 55, 0.3); padding-top: 5px; display: inline-block;
         }
 
         .latest-donation-center {
-          text-align: center; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-
-        .latest-name { font-size: 5rem; font-weight: 900; color: white; text-shadow: 0 0 40px rgba(255,255,255,0.5); line-height: 1; }
-        .latest-amount { font-family: 'Rubik'; font-size: 6.5rem; color: var(--neon-blue); font-weight: 900; text-shadow: 0 0 50px rgba(0,242,255,0.8); }
+        .latest-name { 
+          font-size: 4.2rem; font-weight: 900; 
+          background: var(--gold-text);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          line-height: 1.1; 
+        }
+        .latest-amount { font-family: 'Rubik'; font-size: 3.8rem; color: var(--neon-blue); font-weight: 900; margin-top: 5px; }
         
         .gold-sparkle-element {
-          width: 500px; height: 8px;
-          background: var(--gold-shine);
-          background-size: 200% auto;
-          animation: shine-gold 2s linear infinite;
-          margin-top: 20px;
-          box-shadow: 0 0 30px #f9d976;
-          border-radius: 4px;
+          width: 300px; height: 3px;
+          background: var(--gold-shine); background-size: 200% auto;
+          animation: shine-gold 3s linear infinite;
+          margin-top: 15px; border-radius: 10px; opacity: 0.8;
         }
 
-        .logo-box { width: 350px; display: flex; justify-content: center; align-items: center; }
-        .logo-img { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5)); }
+        .logo-box { width: 300px; max-height: 200px; display: flex; justify-content: center; align-items: center; }
+        .logo-img { max-width: 100%; max-height: 180px; object-fit: contain; }
 
-        .verse { font-size: 2.5rem; color: #d4af37; text-align: center; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .verse { font-size: 2rem; color: #d4af37; text-align: center; font-weight: 700; opacity: 0.8; }
 
         .beam {
-          position: absolute; top: 0; width: 500px; height: 100%;
-          background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.03) 0%, transparent 70%);
-          filter: blur(100px); pointer-events: none;
+          position: absolute; top: 0; width: 400px; height: 100%;
+          background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.02) 0%, transparent 70%);
+          filter: blur(120px); pointer-events: none;
         }
       `}</style>
 
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" />
       {showConfetti && <Confetti width={windowWidth} height={windowHeight} colors={[campaign.themeColor, '#ffffff']} />}
 
-      <div className="beam" style={{ left: '-10%' }}></div>
-      <div className="beam" style={{ right: '-10%' }}></div>
+      <div className="beam" style={{ left: '-5%' }}></div>
+      <div className="beam" style={{ right: '-5%' }}></div>
 
       <div className="stage-container">
         {/* צד ימין */}
@@ -239,21 +240,21 @@ const LiveScreen: React.FC = () => {
 
         {/* מרכז */}
         <div className="center-area">
-          <div className="total-wrapper">
+          {/* סכום כללי ממורכז וקטן יותר */}
+          <div className="total-container">
              <div className="total-val">₪{totalRaised.toLocaleString()}</div>
-             <div className="text-lg tracking-[0.4em] mt-4" style={{ color: '#d4af37', fontWeight: 900 }}>
-                סה"כ התחייבויות
-             </div>
+             <div className="total-label">סה"כ התחייבויות</div>
           </div>
 
+          {/* תרומה אחרונה ממורכזת וקטנה יותר */}
           <div className="latest-donation-center">
             <AnimatePresence mode="wait">
               {donations[0] && (
                 <motion.div
                   key={donations[0].id || donations[0].fullName}
-                  initial={{ y: 50, opacity: 0 }}
+                  initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -50, opacity: 0 }}
+                  exit={{ y: -30, opacity: 0 }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   className="flex flex-col items-center"
                 >
@@ -265,6 +266,7 @@ const LiveScreen: React.FC = () => {
             </AnimatePresence>
           </div>
 
+          {/* לוגו רגיל על הרקע ללא מסגרת עיגול */}
           <div className="logo-box">
             {campaign.logoUrl && (
               <img src={campaign.logoUrl} className="logo-img" alt="logo" />
