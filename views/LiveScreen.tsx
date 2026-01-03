@@ -10,9 +10,8 @@ const LiveScreen: React.FC = () => {
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const [data, setData] = useState<any>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  // מצב חדש למערך של כרטיסי תרומה שקופצים
   const [notifications, setNotifications] = useState<any[]>([]);
-  // רפרנס לצליל
+  const [lastDonation, setLastDonation] = useState<any>(null); // לתצוגה המרכזית הגדולה
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const fetchStats = async () => {
@@ -20,13 +19,14 @@ const LiveScreen: React.FC = () => {
       const res = await fetch(`/api/data/${slug}`);
       const json = await res.json();
       
-      // השוואת נתונים בשביל התראות וקונפטי
       setData((prevData: any) => {
         if (prevData && json.campaign.currentAmount > prevData.campaign.currentAmount) {
-          setShowConfetti(true);
+          const newDonation = json.donations[0];
           const newDonationId = Date.now();
-          const newDonation = { ...json.donations[0], id: newDonationId };
-          setNotifications(prev => [...prev, newDonation]);
+          const donationWithId = { ...newDonation, id: newDonationId };
+          
+          setLastDonation(donationWithId); // מציג באמצע
+          setShowConfetti(true);
           
           if (audioRef.current) {
             audioRef.current.currentTime = 0;
@@ -34,9 +34,11 @@ const LiveScreen: React.FC = () => {
           }
 
           setTimeout(() => setShowConfetti(false), 5000);
+          // אחרי 3 שניות מנקה את המרכז ומכניס לרשימת הצד
           setTimeout(() => {
-            setNotifications(prev => prev.filter(n => n.id !== newDonationId));
-          }, 7000);
+            setLastDonation(null);
+            setNotifications(prev => [donationWithId, ...prev].slice(0, 16));
+          }, 4000);
         }
         return json;
       });
@@ -49,171 +51,150 @@ const LiveScreen: React.FC = () => {
     fetchStats();
     const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
-  }, [slug]); // הסרת data מה-dependencies כדי למנוע לולאה אינסופית המונעת עדכון צבע
+  }, [slug]);
 
   if (!data) return <div className="h-screen bg-[#020617] flex items-center justify-center text-white font-sans">טוען נתונים...</div>;
 
   const { campaign, donations } = data;
-  
-  // חישוב מדויק של כמה נאסף מתוך היעד: סכום המערכת + סכום שהוגדר מראש בניהול
   const totalRaised = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
   const progress = Math.min((totalRaised / (campaign.targetAmount || 1)) * 100, 100);
 
-  // שימוש בכל התרומות עבור הגלילה האינסופית - שכפול המערך ליצירת לולאה חלקה
-  const allDonations = [...donations, ...donations, ...donations, ...donations]; 
+  // חלוקת תרומות לצדדים (לפי התמונה)
+  const leftDonations = donations.slice(0, 4);
+  const rightDonations = donations.slice(4, 8);
 
-  // חישוב והחלת מידות המסך והרקע בצורה דינמית (תומך 4K)
   const screenStyles: any = {
-    backgroundColor: campaign.backgroundColor || '#020617', // צבע הרקע מופעל כאן
-    '--primary': campaign.themeColor,
-    zoom: campaign.displaySettings?.scale || 1.0,
-    width: campaign.displaySettings?.width ? `${campaign.displaySettings.width}px` : '100vw',
-    height: campaign.displaySettings?.height ? `${campaign.displaySettings.height}px` : '100vh',
-    margin: '0 auto',
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden'
+    backgroundColor: campaign.backgroundColor || '#020308',
+    backgroundImage: `radial-gradient(circle at center, ${campaign.themeColor}22 0%, transparent 70%)`,
+    width: '100vw',
+    height: '100vh',
+    overflow: 'hidden',
+    position: 'relative'
   };
 
-  return (
-    <div 
-      className="text-white font-sans" 
-      dir="rtl" 
-      style={screenStyles}
+  // קומפוננטת כרטיס תורם בסגנון התמונה
+  const DonorCard = ({ donation, side }: { donation: any, side: string }) => (
+    <motion.div 
+      initial={{ opacity: 0, x: side === 'right' ? 50 : -50 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="relative mb-4 w-full"
     >
+      <div className="bg-[#1a2b4b]/80 border-2 border-orange-400/50 rounded-lg p-3 shadow-[0_0_15px_rgba(251,146,60,0.2)] backdrop-blur-md overflow-hidden">
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-orange-400/10 to-transparent pointer-events-none" />
+        <div className="flex flex-col items-center justify-center text-center">
+          <span className="text-2xl font-black text-white drop-shadow-md mb-1">{donation.fullName}</span>
+          <span className="text-3xl font-black text-orange-400 tabular-nums">₪{donation.amount.toLocaleString()}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="text-white font-sans overflow-hidden" dir="rtl" style={screenStyles}>
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" />
 
       <style>{`
-        @keyframes scrollUp {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-50%); }
-        }
-        .scroll-marquee { animation: scrollUp 45s linear infinite; } /* מהירות גלילה הוגברה משמעותית ל-45 שניות */
-        .mask-fade { mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent); }
-        .animate-marquee { display: flex; animation: marquee 20s linear infinite; } /* מהירות סרגל תחתון הוגברה ל-20 שניות */
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+        @keyframes pulse-gold { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .gold-glow { text-shadow: 0 0 20px rgba(251, 146, 60, 0.8); }
+        .bg-panel { background: linear-gradient(180deg, rgba(26,43,75,0.9) 0%, rgba(10,15,30,0.95) 100%); }
       `}</style>
 
-      {showConfetti && <Confetti width={windowWidth} height={windowHeight} colors={[campaign.themeColor, '#ffffff']} />}
+      {showConfetti && <Confetti width={windowWidth} height={windowHeight} colors={[campaign.themeColor, '#fb923c', '#ffffff']} />}
 
-      {/* התראות קופצות */}
-      <div className="fixed right-8 top-24 z-[100] flex flex-col gap-4">
-        <AnimatePresence>
-          {notifications.map((notif) => (
-            <motion.div
-              key={notif.id}
-              initial={{ x: 400, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 400, opacity: 0 }}
-              className="bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border-l-8 flex items-center gap-4 min-w-[320px]"
-              style={{ borderLeftColor: campaign.themeColor }}
-            >
-              <Heart className="text-red-500 fill-red-500" size={24} />
-              <div className="flex-1">
-                <p className="text-sm font-bold opacity-50 uppercase">תרומה חדשה!</p>
-                <h4 className="text-xl font-black">{notif.fullName}</h4>
-                {notif.dedication && <p className="text-md italic text-slate-600 font-medium">"{notif.dedication}"</p>}
-                <p className="text-2xl font-black" style={{ color: '#1e3a8a' }}>₪{notif.amount.toLocaleString()}</p>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      {/* שכבת התראה מרכזית גדולה */}
+      <AnimatePresence>
+        {lastDonation && (
+          <motion.div 
+            initial={{ scale: 0, opacity: 0, y: 100 }}
+            animate={{ scale: 1.2, opacity: 1, y: 0 }}
+            exit={{ scale: 0.5, opacity: 0, x: 500 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
+          >
+            <div className="bg-[#1e3a8a] border-4 border-orange-400 p-12 rounded-[3rem] shadow-[0_0_100px_rgba(251,146,60,0.5)] text-center min-w-[600px] relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+                <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+                    <Heart className="text-orange-400 mx-auto mb-4 fill-orange-400" size={80} />
+                </motion.div>
+                <h2 className="text-4xl font-black mb-2 opacity-80 uppercase tracking-widest text-orange-200">תרומה חדשה!</h2>
+                <h3 className="text-7xl font-black mb-6 text-white">{lastDonation.fullName}</h3>
+                <div className="text-8xl font-black text-orange-400 gold-glow">
+                   ₪{lastDonation.amount.toLocaleString()}
+                </div>
+                {lastDonation.dedication && <p className="text-3xl italic mt-6 text-orange-100/80">"{lastDonation.dedication}"</p>}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* באנר ולוגו ריחף - חזרה למבנה ריבועי/טבעי ללא מסגרת */}
-      {campaign.bannerUrl && (
-        <div className="w-full h-[200px] overflow-hidden shadow-2xl relative shrink-0 border-b border-white/5">
-          <img src={campaign.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(to top, ${campaign.backgroundColor || '#020617'}, transparent)` }} />
-          {campaign.logoUrl && (
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-4 right-12 z-30"
-            >
-              <img 
-                src={campaign.logoUrl} 
-                alt="Logo" 
-                className="h-36 w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]" 
-              />
-            </motion.div>
-          )}
-        </div>
-      )}
-
-      {/* תוכן מרכזי */}
-      <div className={`flex-1 max-w-[98%] mx-auto w-full p-4 flex flex-col gap-4 min-h-0 ${!campaign.bannerUrl ? 'pt-24' : ''}`}>
+      <div className="h-full flex p-8 gap-8 relative z-10">
         
-        <div className="flex justify-between items-end border-b border-white/10 pb-2 relative z-10">
-          <div>
-            <h1 className="text-4xl font-black mb-1 tracking-tighter uppercase">{campaign.name}</h1>
-            <p className="text-xl opacity-60 italic font-medium">{campaign.subTitle}</p>
-          </div>
-          <div className="text-left">
-            <p className="text-[10px] opacity-50 uppercase tracking-[0.3em] mb-1">סה"כ נאסף</p>
-            <div className="text-6xl font-black tracking-tighter" style={{ color: campaign.themeColor }}>
-                {totalRaised.toLocaleString()} {campaign.currency}
-            </div>
+        {/* פאנל ימין - השותפים */}
+        <div className="w-1/4 flex flex-col">
+          <div className="bg-orange-500 text-black text-center py-2 rounded-t-xl font-black text-3xl shadow-lg">השותפים</div>
+          <div className="bg-panel flex-1 rounded-b-xl p-6 border-x-2 border-b-2 border-orange-500/30 shadow-2xl overflow-hidden">
+            {rightDonations.map((d: any, i: number) => <DonorCard key={i} donation={d} side="right" />)}
           </div>
         </div>
 
-        {/* מד התקדמות */}
-        <div className="bg-white/5 p-4 rounded-[1.5rem] border border-white/10 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full" />
-          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
-            <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1.5 }} className="h-full rounded-full relative" style={{ backgroundColor: campaign.themeColor }} />
-          </div>
-          <div className="flex justify-between mt-2 text-sm font-bold opacity-70 px-1 tracking-widest">
-            <span>{progress.toFixed(1)}% הושלמו מהיעד</span>
-            <div className="flex items-center gap-2">
-                <Target size={16} />
-                <span>יעד הקמפיין: {campaign.targetAmount.toLocaleString()} {campaign.currency}</span>
+        {/* פאנל מרכזי - קמפיין וסכום */}
+        <div className="flex-1 flex flex-col gap-6">
+            {/* סכום כללי עליון */}
+            <div className="relative text-center">
+                <div className="bg-[#1a2b4b] inline-block px-16 py-6 rounded-3xl border-2 border-orange-400/50 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+                    <p className="text-2xl font-bold text-orange-400 mb-2 uppercase tracking-widest">עד כה התחייבו</p>
+                    <div className="text-8xl font-black text-white tabular-nums tracking-tighter drop-shadow-2xl">
+                        ₪{totalRaised.toLocaleString()}
+                    </div>
+                </div>
             </div>
-          </div>
+
+            {/* לוגו/גרפיקה מרכזית */}
+            <div className="flex-1 flex items-center justify-center relative">
+                {campaign.logoUrl && (
+                    <motion.img 
+                        animate={{ y: [0, -15, 0] }}
+                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                        src={campaign.logoUrl} 
+                        className="max-h-[500px] w-auto drop-shadow-[0_0_50px_rgba(251,146,60,0.3)]"
+                        alt="Campaign Logo"
+                    />
+                )}
+            </div>
+
+            {/* מד התקדמות */}
+            <div className="w-full bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-xl">
+                <div className="flex justify-between mb-4 font-black text-2xl">
+                    <span className="text-orange-400">{progress.toFixed(1)}%</span>
+                    <span>יעד: ₪{campaign.targetAmount.toLocaleString()}</span>
+                </div>
+                <div className="h-8 bg-black/40 rounded-full overflow-hidden border border-white/10 p-1">
+                    <motion.div 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${progress}%` }} 
+                        transition={{ duration: 2 }}
+                        className="h-full rounded-full bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600 shadow-[0_0_20px_rgba(251,146,60,0.5)]"
+                    />
+                </div>
+            </div>
         </div>
 
-        {/* זרם תרומות אחרונות */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <div className="flex items-center gap-3 mb-4">
-            <TrendingUp size={24} className="text-emerald-400" />
-            <h2 className="text-3xl font-black tracking-tighter opacity-90">תרומות אחרונות בזמן אמת</h2>
-          </div>
-          
-          <div className="flex-1 overflow-hidden relative mask-fade">
-            <div className="scroll-marquee">
-              <div className="grid grid-cols-5 gap-4 py-4">
-                {allDonations.map((donation: any, idx: number) => (
-                  <motion.div
-                    key={idx}
-                    className="bg-white/5 backdrop-blur-lg p-5 rounded-[2rem] border border-white/10 flex flex-col justify-between shadow-2xl"
-                    style={{ borderTop: `4px solid ${campaign.themeColor}` }}
-                  >
-                    <div className="flex flex-col gap-2">
-                      <span className="text-xl font-black leading-tight tracking-tight text-white/90 truncate">{donation.fullName}</span>
-                      {donation.dedication && (
-                        <p className="text-sm italic opacity-60 font-medium line-clamp-2 h-10">"{donation.dedication}"</p>
-                      )}
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-white/5 text-2xl font-black" style={{ color: campaign.themeColor }}>
-                      ₪{donation.amount.toLocaleString()}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+        {/* פאנל שמאל - השותפים */}
+        <div className="w-1/4 flex flex-col">
+          <div className="bg-orange-500 text-black text-center py-2 rounded-t-xl font-black text-3xl shadow-lg">השותפים</div>
+          <div className="bg-panel flex-1 rounded-b-xl p-6 border-x-2 border-b-2 border-orange-500/30 shadow-2xl overflow-hidden">
+            {leftDonations.map((d: any, i: number) => <DonorCard key={i} donation={d} side="left" />)}
           </div>
         </div>
       </div>
 
-      {/* פס גלילה תחתון */}
-      <div className="bg-white/5 py-4 border-t border-white/10 text-2xl font-black overflow-hidden backdrop-blur-md">
-        <div className="animate-marquee whitespace-nowrap flex gap-12">
+      {/* פס גלילה תחתון (קיים בקוד המקורי) */}
+      <div className="fixed bottom-0 w-full bg-black/80 py-4 border-t-2 border-orange-500/50 text-2xl font-black overflow-hidden backdrop-blur-md z-50">
+        <div className="flex gap-12 whitespace-nowrap animate-marquee">
            {donations.concat(donations).map((d: any, i: number) => (
              <span key={i} className="flex items-center gap-6 text-white/90">
-               <Heart size={22} style={{ color: campaign.themeColor }} className="fill-current"/> 
-               <span className="font-black">{d.fullName}</span>
-               <span className="px-4 py-1 rounded-full bg-white/5" style={{ color: campaign.themeColor }}>₪{d.amount.toLocaleString()}</span>
+               <Heart size={22} className="text-orange-400 fill-current"/> 
+               <span>{d.fullName}</span>
+               <span className="px-4 py-1 rounded-full bg-orange-500/20 text-orange-400">₪{d.amount.toLocaleString()}</span>
                <span className="opacity-20 mx-4">|</span>
              </span>
            ))}
