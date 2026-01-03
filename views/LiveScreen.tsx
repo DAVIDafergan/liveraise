@@ -16,7 +16,7 @@ const LiveScreen: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  /* ================= DATA FETCH – ORIGINAL LOGIC ================= */
+  /* ===== DASHBOARD LOGIC – נשאר כמו שהוא ===== */
 
   const fetchStats = async () => {
     try {
@@ -31,7 +31,6 @@ const LiveScreen: React.FC = () => {
           setShowConfetti(true);
 
           const donation = { ...json.donations[0], id: Date.now() };
-
           setNotifications((p) => [...p, donation]);
           setCenterDonation(donation);
 
@@ -93,7 +92,7 @@ const LiveScreen: React.FC = () => {
     position: 'relative',
     overflow: 'hidden',
     background:
-      'radial-gradient(circle at top, #0c1535, #020617 65%)',
+      'radial-gradient(circle at top, #0c1535, #020617 70%)',
   };
 
   return (
@@ -104,13 +103,33 @@ const LiveScreen: React.FC = () => {
         src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"
       />
 
+      {/* ===== STYLES ===== */}
       <style>{`
-        @keyframes goldGlow {
+        @keyframes goldShimmer {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        .gold-text {
+          background: linear-gradient(
+            120deg,
+            #d4af37 0%,
+            #fff3b0 20%,
+            #d4af37 40%,
+            #fff3b0 60%,
+            #d4af37 100%
+          );
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: goldShimmer 5s linear infinite;
+        }
+
+        @keyframes glowPulse {
           0% { box-shadow: 0 0 20px #d4af3740; }
-          50% { box-shadow: 0 0 80px #d4af37aa; }
+          50% { box-shadow: 0 0 90px #d4af37aa; }
           100% { box-shadow: 0 0 20px #d4af3740; }
         }
-        .gold-glow { animation: goldGlow 4s ease-in-out infinite; }
+        .gold-glow { animation: glowPulse 4s ease-in-out infinite; }
       `}</style>
 
       {showConfetti && (
@@ -121,27 +140,33 @@ const LiveScreen: React.FC = () => {
         />
       )}
 
+      {/* ===== CHANDELIER ===== */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[320px] h-[120px]">
+        <div className="w-full h-[4px] bg-[#d4af37] mx-auto" />
+        <div className="mx-auto mt-4 w-[160px] h-[40px] rounded-full bg-[#d4af37]/30 blur-xl" />
+      </div>
+
       {/* ===== CENTER DONATION ===== */}
       <AnimatePresence>
         {centerDonation && (
           <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
+            initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ x: 500, opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            exit={{ x: 600, opacity: 0 }}
+            transition={{ duration: 0.9, ease: 'easeOut' }}
             className="
-              absolute top-[260px] left-1/2 -translate-x-1/2 z-50
-              bg-gradient-to-br from-[#1a233f] to-[#05070f]
-              border-4 border-[#d4af37]
-              rounded-[2rem]
-              px-20 py-12
+              absolute top-[300px] left-1/2 -translate-x-1/2 z-50
+              bg-gradient-to-br from-[#101a3a] to-[#05070f]
+              border-[5px] border-[#d4af37]
+              rounded-[2.5rem]
+              px-24 py-14
               text-center gold-glow
             "
           >
-            <div className="text-4xl font-black">
+            <div className="text-[52px] font-black gold-text">
               {centerDonation.fullName}
             </div>
-            <div className="text-6xl font-black text-[#d4af37] mt-4">
+            <div className="text-[72px] font-black gold-text mt-4">
               ₪{centerDonation.amount.toLocaleString()}
             </div>
           </motion.div>
@@ -149,30 +174,28 @@ const LiveScreen: React.FC = () => {
       </AnimatePresence>
 
       {/* ===== HEADER ===== */}
-      <div className="h-[140px] flex flex-col items-center justify-center">
+      <div className="h-[160px] flex flex-col items-center justify-center">
         <div className="tracking-[0.4em] text-sm opacity-60">
           סה״כ נאסף
         </div>
-        <div className="text-[72px] font-black text-[#d4af37]">
+        <div className="text-[80px] font-black gold-text">
           ₪{totalRaised.toLocaleString()}
         </div>
       </div>
 
       {/* ===== CENTER BANNER ===== */}
       {campaign.bannerUrl && (
-        <div className="absolute top-[160px] left-1/2 -translate-x-1/2">
+        <div className="absolute top-[190px] left-1/2 -translate-x-1/2">
           <img
             src={campaign.bannerUrl}
             alt="Banner"
-            className="h-[180px] object-contain drop-shadow-2xl"
+            className="h-[200px] object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
           />
         </div>
       )}
 
-      {/* ===== LEFT PANEL ===== */}
+      {/* ===== SIDE PANELS ===== */}
       <SidePanel title="השותפים" list={topDonors} side="left" />
-
-      {/* ===== RIGHT PANEL ===== */}
       <SidePanel title="השותפים" list={topDonors} side="right" />
 
       {/* ===== FLOATING NOTIFICATIONS ===== */}
@@ -207,32 +230,43 @@ const LiveScreen: React.FC = () => {
 /* ===== SIDE PANEL ===== */
 
 const SidePanel = ({ title, list, side }: any) => (
-  <div
+  <motion.div
+    initial={{ opacity: 0, x: side === 'left' ? -40 : 40 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 1 }}
     className={`
-      absolute top-[220px] ${side === 'left' ? 'left-10' : 'right-10'}
-      w-[360px]
-      bg-gradient-to-b from-[#1a233f] to-[#05070f]
-      border-4 border-[#d4af37]
-      rounded-[1.5rem]
-      shadow-[0_0_60px_#d4af3740]
-      overflow-hidden
+      absolute top-[260px] ${side === 'left' ? 'left-10' : 'right-10'}
+      w-[380px]
+      bg-gradient-to-b from-[#101a3a] to-[#05070f]
+      border-[4px] border-[#d4af37]
+      rounded-[2rem]
+      shadow-[0_0_80px_#d4af3740]
+      overflow-hidden gold-glow
     `}
   >
-    <div className="text-center py-4 text-3xl font-black text-[#d4af37]">
+    <div className="text-center py-5 text-4xl font-black gold-text">
       {title}
     </div>
 
     <div className="divide-y divide-[#d4af3720]">
       {list.map((p: any, i: number) => (
-        <div key={i} className="px-6 py-4 text-center">
-          <div className="text-xl font-black">{p.fullName}</div>
-          <div className="text-2xl font-black text-[#d4af37]">
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.1 }}
+          className="px-8 py-5 text-center"
+        >
+          <div className="text-3xl font-black text-white">
+            {p.fullName}
+          </div>
+          <div className="text-3xl font-black gold-text mt-1">
             ₪{p.amount.toLocaleString()}
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
-  </div>
+  </motion.div>
 );
 
 export default LiveScreen;
