@@ -171,9 +171,9 @@ const LiveScreen: React.FC = () => {
 
         .scroll-content {
           display: grid; 
-          grid-template-columns: repeat(3, 1fr) !important; /* שלוש עמודות קשיחות */
+          grid-template-columns: repeat(3, 1fr) !important; 
           gap: 15px;
-          animation: scrollUp 120s linear infinite; /* מהירות מותאמת לכמות גדולה */
+          animation: scrollUp 120s linear infinite;
         }
 
         @keyframes scrollUp { 
@@ -191,13 +191,13 @@ const LiveScreen: React.FC = () => {
           text-align: center;
           display: flex; flex-direction: column; justify-content: center; align-items: center;
           box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-          min-height: 140px; /* גובה מינימלי למניעת עיוות */
+          min-height: 140px; 
           flex-shrink: 0;
         }
 
         .d-name { 
           font-weight: 950; 
-          font-size: 2.3rem; /* כתב ענק */
+          font-size: 2.3rem; 
           color: #ffffff; 
           margin-bottom: 8px; 
           line-height: 1.1;
@@ -209,7 +209,7 @@ const LiveScreen: React.FC = () => {
           font-family: 'Rubik'; 
           color: var(--gold-solid); 
           font-weight: 900; 
-          font-size: 2.1rem; /* סכום גדול */
+          font-size: 2.1rem; 
         }
 
         .center-area { 
@@ -217,49 +217,62 @@ const LiveScreen: React.FC = () => {
           display: flex; 
           flex-direction: column; 
           align-items: center; 
-          justify-content: space-between; 
-          padding: 40px 0; 
+          justify-content: space-around; 
+          padding: 20px 0; 
           height: 100%;
         }
         
-        .total-container { text-align: center; position: relative; }
+        .total-container { 
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center; 
+        }
         .total-val {
           font-family: 'Rubik'; font-size: clamp(4rem, 9vw, 8.5rem); font-weight: 950;
           color: #fff; line-height: 1; margin: 0;
           filter: drop-shadow(0 0 35px rgba(255,255,255,0.3));
         }
         .total-label { 
-          color: #d4af37; font-weight: 900; font-size: 2.2rem; letter-spacing: 5px; margin-top: 20px; 
-          border-top: 2px solid rgba(212, 175, 55, 0.6); padding-top: 10px; display: inline-block;
+          color: #d4af37; font-weight: 900; font-size: 2.2rem; letter-spacing: 5px; 
+          margin-bottom: 10px; 
+          border-bottom: 2px solid rgba(212, 175, 55, 0.6); padding-bottom: 10px; 
+          display: inline-block;
         }
 
         .latest-donation-center {
-          text-align: center; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
           width: 100%;
         }
 
         .latest-name { 
-          font-size: clamp(3.5rem, 8vw, 6rem); 
+          font-size: clamp(2.5rem, 5vw, 4.5rem); 
           font-weight: 950; 
           color: #ffffff; 
           line-height: 1.1; 
           text-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        .latest-amount { font-family: 'Rubik'; font-size: clamp(3rem, 6vw, 4.5rem); color: var(--neon-blue); font-weight: 900; margin-top: 15px; }
+        .latest-amount { font-family: 'Rubik'; font-size: clamp(2rem, 4vw, 3.5rem); color: var(--neon-blue); font-weight: 900; margin-top: 10px; }
         
         .gold-sparkle-element {
-          width: 85%; max-width: 450px; height: 6px;
+          width: 70%; max-width: 350px; height: 4px;
           background: var(--gold-shine); background-size: 200% auto;
           animation: shine-gold 3s linear infinite;
-          margin-top: 25px; border-radius: 10px;
+          margin-top: 20px; border-radius: 10px;
         }
 
         .logo-box { 
-          width: 100%; max-width: 480px;
+          width: 100%; height: 250px;
           display: flex; justify-content: center; align-items: center; 
+          margin-top: 10px;
         }
-        .logo-img { max-width: 100%; max-height: 240px; object-fit: contain; filter: drop-shadow(0 15px 35px rgba(0,0,0,0.7)); }
+        .logo-img { 
+          max-width: 90%; 
+          max-height: 100%; 
+          object-fit: contain; 
+          filter: drop-shadow(0 15px 35px rgba(0,0,0,0.7)); 
+        }
 
         .beam {
           position: absolute; top: 0; width: 35%; height: 100%;
@@ -296,19 +309,21 @@ const LiveScreen: React.FC = () => {
 
         {/* מרכז */}
         <div className="center-area">
+          {/* סכום כולל עם תווית מעל */}
           <div className="total-container">
-              <div className="total-val">₪{totalRaised.toLocaleString()}</div>
               <div className="total-label">סה"כ התחייבויות</div>
+              <div className="total-val">₪{totalRaised.toLocaleString()}</div>
           </div>
 
+          {/* תרומה אחרונה - מוקטנת וממורכזת */}
           <div className="latest-donation-center">
             <AnimatePresence mode="wait">
               {donations[0] && (
                 <motion.div
                   key={donations[0].id || donations[0].fullName}
-                  initial={{ y: 30, opacity: 0 }}
+                  initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -30, opacity: 0 }}
+                  exit={{ y: -20, opacity: 0 }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   className="flex flex-col items-center w-full"
                 >
@@ -320,6 +335,7 @@ const LiveScreen: React.FC = () => {
             </AnimatePresence>
           </div>
 
+          {/* לוגו ממורכז ולא חתוך */}
           <div className="logo-box">
             {campaign.logoUrl && (
               <img src={campaign.logoUrl} className="logo-img" alt="logo" />
