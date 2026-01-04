@@ -52,7 +52,9 @@ const LiveScreen: React.FC = () => {
 
   const { campaign, donations } = data;
   const totalRaised = (campaign.currentAmount || 0) + (campaign.manualStartingAmount || 0);
-  const allDonations = [...donations, ...donations, ...donations, ...donations];
+  
+  // הכפלת המערך לצורך גלילה אינסופית חלקה ללא קפיצות
+  const allDonations = [...donations, ...donations, ...donations, ...donations, ...donations, ...donations];
 
   const screenStyles: any = {
     backgroundColor: campaign.backgroundColor || '#020408',
@@ -116,20 +118,29 @@ const LiveScreen: React.FC = () => {
           flex-direction: row;
           justify-content: space-between; 
           gap: 20px; 
-          padding: 25px; 
+          padding: 30px; 
           box-sizing: border-box;
           z-index: 10;
           position: relative;
         }
 
-        .side-frame { flex: 1.2; display: flex; flex-direction: column; position: relative; min-width: 0; }
+        .side-frame { 
+          flex: 1.2; 
+          display: flex; 
+          flex-direction: column; 
+          position: relative; 
+          min-width: 0; 
+          height: 100%;
+        }
         
         .gold-border-box {
-          flex-grow: 1; padding: 2px;
+          height: 100%; padding: 2px;
           background: var(--gold-shine);
           background-size: 200% auto;
           animation: shine-gold 5s linear infinite;
           clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%);
+          display: flex;
+          flex-direction: column;
         }
 
         .inner-screen {
@@ -145,57 +156,60 @@ const LiveScreen: React.FC = () => {
         }
 
         .header-inner {
-          background: #1a1005; padding: 10px 40px;
+          background: #1a1005; padding: 10px 45px;
           clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
           color: var(--gold-solid); font-weight: 900; font-size: 1.8rem; white-space: nowrap;
           letter-spacing: 2px;
         }
 
         .scrolling-wrapper {
-          height: 100%; padding: 60px 15px; box-sizing: border-box;
-          mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+          height: 100%; 
+          padding: 70px 15px; 
+          box-sizing: border-box;
+          mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
         }
 
         .scroll-content {
           display: grid; 
-          grid-template-columns: repeat(3, 1fr); /* 3 עמודות קבועות בדיוק */
+          grid-template-columns: repeat(3, 1fr) !important; /* שלוש עמודות קשיחות */
           gap: 15px;
-          animation: scrollUp 100s linear infinite;
+          animation: scrollUp 120s linear infinite; /* מהירות מותאמת לכמות גדולה */
         }
 
-        @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+        @keyframes scrollUp { 
+          0% { transform: translateY(0); } 
+          100% { transform: translateY(-50%); } 
+        }
+        
         @keyframes shine-gold { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
 
         .donor-card {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(249, 217, 118, 0.15);
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(249, 217, 118, 0.2);
           border-radius: 8px; 
-          padding: 25px 5px; /* פדינג מוגדל לגובה */
+          padding: 20px 5px;
           text-align: center;
           display: flex; flex-direction: column; justify-content: center; align-items: center;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-          min-height: 120px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+          min-height: 140px; /* גובה מינימלי למניעת עיוות */
+          flex-shrink: 0;
         }
 
-        /* שמות השותפים - ענקיים ונקיים */
         .d-name { 
-          font-weight: 900; 
-          font-size: 2.1rem; /* כתב ענק */
+          font-weight: 950; 
+          font-size: 2.3rem; /* כתב ענק */
           color: #ffffff; 
           margin-bottom: 8px; 
           line-height: 1.1;
           text-shadow: none;
-          white-space: normal; /* מאפשר ירידת שורה אם השם ארוך */
-          display: block;
+          word-break: break-word;
         }
 
-        /* סכום השותפים - גדול מתחת לשם */
         .d-amount { 
           font-family: 'Rubik'; 
           color: var(--gold-solid); 
-          font-weight: 800; 
-          font-size: 1.8rem; /* סכום גדול */
-          display: block;
+          font-weight: 900; 
+          font-size: 2.1rem; /* סכום גדול */
         }
 
         .center-area { 
@@ -203,60 +217,54 @@ const LiveScreen: React.FC = () => {
           display: flex; 
           flex-direction: column; 
           align-items: center; 
-          justify-content: center; 
-          padding: 20px; 
+          justify-content: space-between; 
+          padding: 40px 0; 
+          height: 100%;
         }
         
-        .total-container { text-align: center; position: relative; margin-bottom: 40px; }
+        .total-container { text-align: center; position: relative; }
         .total-val {
-          font-family: 'Rubik'; font-size: clamp(4rem, 10vw, 8rem); font-weight: 950;
+          font-family: 'Rubik'; font-size: clamp(4rem, 9vw, 8.5rem); font-weight: 950;
           color: #fff; line-height: 1; margin: 0;
-          filter: drop-shadow(0 0 30px rgba(255,255,255,0.3));
+          filter: drop-shadow(0 0 35px rgba(255,255,255,0.3));
         }
         .total-label { 
-          color: #d4af37; font-weight: 900; font-size: 2rem; letter-spacing: 5px; margin-top: 20px; 
-          border-top: 2px solid rgba(212, 175, 55, 0.5); padding-top: 10px; display: inline-block;
+          color: #d4af37; font-weight: 900; font-size: 2.2rem; letter-spacing: 5px; margin-top: 20px; 
+          border-top: 2px solid rgba(212, 175, 55, 0.6); padding-top: 10px; display: inline-block;
         }
 
         .latest-donation-center {
-          text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          margin: 30px 0; width: 100%;
+          text-align: center; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          width: 100%;
         }
 
         .latest-name { 
-          font-size: clamp(3rem, 7vw, 5.5rem); 
+          font-size: clamp(3.5rem, 8vw, 6rem); 
           font-weight: 950; 
           color: #ffffff; 
           line-height: 1.1; 
-          text-shadow: none;
+          text-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        .latest-amount { font-family: 'Rubik'; font-size: clamp(2.5rem, 5vw, 4rem); color: var(--neon-blue); font-weight: 900; margin-top: 10px; }
+        .latest-amount { font-family: 'Rubik'; font-size: clamp(3rem, 6vw, 4.5rem); color: var(--neon-blue); font-weight: 900; margin-top: 15px; }
         
         .gold-sparkle-element {
-          width: 80%; max-width: 400px; height: 5px;
+          width: 85%; max-width: 450px; height: 6px;
           background: var(--gold-shine); background-size: 200% auto;
           animation: shine-gold 3s linear infinite;
-          margin-top: 20px; border-radius: 10px; opacity: 1;
+          margin-top: 25px; border-radius: 10px;
         }
 
         .logo-box { 
-          width: 100%; max-width: 450px;
+          width: 100%; max-width: 480px;
           display: flex; justify-content: center; align-items: center; 
-          margin-top: 30px;
         }
-        .logo-img { max-width: 100%; max-height: 220px; object-fit: contain; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6)); }
+        .logo-img { max-width: 100%; max-height: 240px; object-fit: contain; filter: drop-shadow(0 15px 35px rgba(0,0,0,0.7)); }
 
         .beam {
           position: absolute; top: 0; width: 35%; height: 100%;
-          background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.07) 0%, transparent 70%);
-          filter: blur(100px); pointer-events: none;
-        }
-
-        @media (max-width: 1200px) {
-          .d-name { font-size: 1.5rem; }
-          .d-amount { font-size: 1.3rem; }
-          .scroll-content { gap: 10px; }
+          background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.08) 0%, transparent 70%);
+          filter: blur(110px); pointer-events: none;
         }
       `}</style>
 
@@ -275,7 +283,7 @@ const LiveScreen: React.FC = () => {
               <div className="scrolling-wrapper">
                 <div className="scroll-content">
                   {allDonations.map((d, i) => (
-                    <div key={i} className="donor-card">
+                    <div key={`right-${i}`} className="donor-card">
                       <span className="d-name">{d.fullName}</span>
                       <span className="d-amount">₪{d.amount.toLocaleString()}</span>
                     </div>
@@ -327,7 +335,7 @@ const LiveScreen: React.FC = () => {
               <div className="scrolling-wrapper">
                 <div className="scroll-content">
                   {allDonations.slice().reverse().map((d, i) => (
-                    <div key={i} className="donor-card">
+                    <div key={`left-${i}`} className="donor-card">
                       <span className="d-name">{d.fullName}</span>
                       <span className="d-amount">₪{d.amount.toLocaleString()}</span>
                     </div>
