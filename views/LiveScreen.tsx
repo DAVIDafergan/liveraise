@@ -116,23 +116,13 @@ const LiveScreen: React.FC = () => {
           flex-direction: row;
           justify-content: space-between; 
           gap: 20px; 
-          padding: 20px; 
+          padding: 25px; 
           box-sizing: border-box;
           z-index: 10;
           position: relative;
         }
 
-        @media (max-width: 1024px) {
-          .stage-container {
-            flex-direction: column;
-            overflow-y: auto;
-            justify-content: flex-start;
-          }
-          .side-frame { order: 2; min-height: 400px; }
-          .center-area { order: 1; flex: none; padding: 20px 0; }
-        }
-
-        .side-frame { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
+        .side-frame { flex: 1.2; display: flex; flex-direction: column; position: relative; min-width: 0; }
         
         .gold-border-box {
           flex-grow: 1; padding: 2px;
@@ -155,50 +145,61 @@ const LiveScreen: React.FC = () => {
         }
 
         .header-inner {
-          background: #1a1005; padding: 8px 30px;
+          background: #1a1005; padding: 10px 40px;
           clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
-          color: var(--gold-solid); font-weight: 900; font-size: 1.5rem; white-space: nowrap;
+          color: var(--gold-solid); font-weight: 900; font-size: 1.8rem; white-space: nowrap;
           letter-spacing: 2px;
         }
 
         .scrolling-wrapper {
-          height: 100%; padding: 50px 10px; box-sizing: border-box;
+          height: 100%; padding: 60px 15px; box-sizing: border-box;
           mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
         }
 
         .scroll-content {
           display: grid; 
-          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+          grid-template-columns: repeat(3, 1fr); /* 3 עמודות קבועות בדיוק */
           gap: 15px;
-          animation: scrollUp 95s linear infinite;
+          animation: scrollUp 100s linear infinite;
         }
 
         @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
         @keyframes shine-gold { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
 
         .donor-card {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(249, 217, 118, 0.2);
-          border-radius: 12px; padding: 15px 5px; text-align: center;
-          display: flex; flex-direction: column; justify-content: center;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(249, 217, 118, 0.15);
+          border-radius: 8px; 
+          padding: 25px 5px; /* פדינג מוגדל לגובה */
+          text-align: center;
+          display: flex; flex-direction: column; justify-content: center; align-items: center;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+          min-height: 120px;
         }
 
-        /* שמות ברשימה הצידית - נקיים ובולטים */
+        /* שמות השותפים - ענקיים ונקיים */
         .d-name { 
           font-weight: 900; 
-          font-size: 1.6rem; 
-          color: #ffffff; /* לבן נקי ללא צבע זהב שעלול לטשטש */
-          margin-bottom: 4px; 
-          text-shadow: none; /* הסרת כל אפקט */
-          white-space: nowrap; 
-          overflow: hidden; 
-          text-overflow: ellipsis;
+          font-size: 2.1rem; /* כתב ענק */
+          color: #ffffff; 
+          margin-bottom: 8px; 
+          line-height: 1.1;
+          text-shadow: none;
+          white-space: normal; /* מאפשר ירידת שורה אם השם ארוך */
+          display: block;
         }
 
-        .d-amount { font-family: 'Rubik'; color: var(--gold-solid); font-weight: 800; font-size: 1.2rem; }
+        /* סכום השותפים - גדול מתחת לשם */
+        .d-amount { 
+          font-family: 'Rubik'; 
+          color: var(--gold-solid); 
+          font-weight: 800; 
+          font-size: 1.8rem; /* סכום גדול */
+          display: block;
+        }
 
         .center-area { 
-          flex: 1.5; 
+          flex: 1.8; 
           display: flex; 
           flex-direction: column; 
           align-items: center; 
@@ -206,52 +207,56 @@ const LiveScreen: React.FC = () => {
           padding: 20px; 
         }
         
-        .total-container { text-align: center; position: relative; margin-bottom: 30px; }
+        .total-container { text-align: center; position: relative; margin-bottom: 40px; }
         .total-val {
-          font-family: 'Rubik'; font-size: clamp(3rem, 8vw, 6.5rem); font-weight: 900;
+          font-family: 'Rubik'; font-size: clamp(4rem, 10vw, 8rem); font-weight: 950;
           color: #fff; line-height: 1; margin: 0;
-          filter: drop-shadow(0 0 25px rgba(255,255,255,0.25));
+          filter: drop-shadow(0 0 30px rgba(255,255,255,0.3));
         }
         .total-label { 
-          color: #d4af37; font-weight: 900; font-size: clamp(1rem, 2vw, 1.6rem); letter-spacing: 5px; margin-top: 15px; 
+          color: #d4af37; font-weight: 900; font-size: 2rem; letter-spacing: 5px; margin-top: 20px; 
           border-top: 2px solid rgba(212, 175, 55, 0.5); padding-top: 10px; display: inline-block;
         }
 
         .latest-donation-center {
-          text-align: center; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          margin: 20px 0; width: 100%;
+          text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          margin: 30px 0; width: 100%;
         }
 
-        /* שם התורם המרכזי - גדול, ברור וללא אפקטים */
         .latest-name { 
-          font-size: clamp(2.5rem, 6vw, 4.2rem); 
+          font-size: clamp(3rem, 7vw, 5.5rem); 
           font-weight: 950; 
-          color: #ffffff; /* לבן מוחלט */
+          color: #ffffff; 
           line-height: 1.1; 
-          text-shadow: none; /* ללא צללים או הילות */
-          filter: none;
+          text-shadow: none;
         }
 
-        .latest-amount { font-family: 'Rubik'; font-size: clamp(1.8rem, 4vw, 3rem); color: var(--neon-blue); font-weight: 900; margin-top: 6px; }
+        .latest-amount { font-family: 'Rubik'; font-size: clamp(2.5rem, 5vw, 4rem); color: var(--neon-blue); font-weight: 900; margin-top: 10px; }
         
         .gold-sparkle-element {
-          width: 60%; max-width: 280px; height: 4px;
+          width: 80%; max-width: 400px; height: 5px;
           background: var(--gold-shine); background-size: 200% auto;
           animation: shine-gold 3s linear infinite;
-          margin-top: 15px; border-radius: 10px; opacity: 0.9;
+          margin-top: 20px; border-radius: 10px; opacity: 1;
         }
 
         .logo-box { 
-          width: 100%; max-width: 350px;
+          width: 100%; max-width: 450px;
           display: flex; justify-content: center; align-items: center; 
-          margin-top: 20px;
+          margin-top: 30px;
         }
-        .logo-img { max-width: 100%; max-height: 180px; object-fit: contain; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5)); }
+        .logo-img { max-width: 100%; max-height: 220px; object-fit: contain; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6)); }
 
         .beam {
-          position: absolute; top: 0; width: 30%; height: 100%;
-          background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.05) 0%, transparent 70%);
-          filter: blur(80px); pointer-events: none;
+          position: absolute; top: 0; width: 35%; height: 100%;
+          background: radial-gradient(ellipse at center, rgba(249, 217, 118, 0.07) 0%, transparent 70%);
+          filter: blur(100px); pointer-events: none;
+        }
+
+        @media (max-width: 1200px) {
+          .d-name { font-size: 1.5rem; }
+          .d-amount { font-size: 1.3rem; }
+          .scroll-content { gap: 10px; }
         }
       `}</style>
 
