@@ -75,7 +75,7 @@ const LiveScreen: React.FC = () => {
         :root {
           --bg-color: ${campaign.backgroundColor || '#020408'};
           --gold-shine: linear-gradient(110deg, #8a6e2f 20%, #f9d976 40%, #ffffff 50%, #f9d976 60%, #8a6e2f 80%);
-          --gold-text: linear-gradient(to bottom, #fceea6 0%, #d4af37 100%);
+          --gold-solid: #f9d976;
           --neon-blue: #00f2ff;
         }
 
@@ -86,29 +86,33 @@ const LiveScreen: React.FC = () => {
           position: relative;
         }
 
+        /* אפקט זהב עדין על כל המסך */
         .live-container::before {
           content: "";
           position: absolute;
           top: 0; left: 0; width: 100%; height: 100%;
           background-image: 
-            radial-gradient(1.5px 1.5px at 20px 30px, #f9d976, rgba(0,0,0,0)),
-            radial-gradient(1.5px 1.5px at 100px 150px, #fff, rgba(0,0,0,0)),
-            radial-gradient(1.5px 1.5px at 200px 50px, #d4af37, rgba(0,0,0,0));
-          background-size: 300px 300px;
-          animation: sparkleAnim 15s linear infinite;
-          opacity: 0.2;
+            radial-gradient(1px 1px at 10% 10%, rgba(249, 217, 118, 0.4), transparent),
+            radial-gradient(1.5px 1.5px at 50% 40%, rgba(249, 217, 118, 0.3), transparent),
+            radial-gradient(1px 1px at 80% 70%, rgba(255, 255, 255, 0.3), transparent),
+            radial-gradient(2px 2px at 30% 80%, rgba(212, 175, 55, 0.2), transparent);
+          background-size: 400px 400px;
+          animation: goldDustAnim 25s linear infinite;
+          opacity: 0.4;
           pointer-events: none;
+          z-index: 1;
         }
 
-        @keyframes sparkleAnim {
+        @keyframes goldDustAnim {
           from { background-position: 0 0; }
-          to { background-position: 0 1000px; }
+          to { background-position: 500px 1000px; }
         }
 
         .stage-container {
           width: 99%; height: 96%;
           display: flex; justify-content: space-between; gap: 30px; padding: 25px; box-sizing: border-box;
           z-index: 10;
+          position: relative;
         }
 
         .side-frame { flex: 2.4; display: flex; flex-direction: column; position: relative; }
@@ -122,7 +126,7 @@ const LiveScreen: React.FC = () => {
         }
 
         .inner-screen {
-          background: rgba(6, 13, 31, 0.85); width: 100%; height: 100%;
+          background: rgba(6, 13, 31, 0.9); width: 100%; height: 100%;
           clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%);
           overflow: hidden; position: relative;
         }
@@ -136,7 +140,7 @@ const LiveScreen: React.FC = () => {
         .header-inner {
           background: #1a1005; padding: 10px 55px;
           clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
-          color: #f9d976; font-weight: 900; font-size: 2.2rem; white-space: nowrap;
+          color: var(--gold-solid); font-weight: 900; font-size: 2.2rem; white-space: nowrap;
           letter-spacing: 2px;
         }
 
@@ -147,7 +151,7 @@ const LiveScreen: React.FC = () => {
 
         .scroll-content {
           display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
-          animation: scrollUp 75s linear infinite;
+          animation: scrollUp 95s linear infinite; /* גלילה איטית יותר לקריאה נוחה */
         }
 
         @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
@@ -163,10 +167,9 @@ const LiveScreen: React.FC = () => {
 
         .d-name { 
           font-weight: 950; font-size: 2.8rem; 
-          background: var(--gold-text);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          color: var(--gold-solid);
           margin-bottom: 8px; 
-          text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+          text-shadow: 0 4px 12px rgba(0,0,0,0.9);
         }
         .d-amount { font-family: 'Rubik'; color: #fff; font-weight: 800; font-size: 2.1rem; opacity: 1; }
 
@@ -192,13 +195,13 @@ const LiveScreen: React.FC = () => {
 
         .latest-donation-center {
           text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          margin: 40px 0; /* מרווח מוגדל בין הסכום ללוגו ולסכום הכללי */
+          margin: 40px 0;
         }
         .latest-name { 
           font-size: 3.4rem; font-weight: 950; 
-          background: var(--gold-text);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          color: var(--gold-solid);
           line-height: 1.1; 
+          text-shadow: 0 4px 15px rgba(0,0,0,0.8);
         }
         .latest-amount { font-family: 'Rubik'; font-size: 3rem; color: var(--neon-blue); font-weight: 900; margin-top: 6px; }
         
@@ -210,7 +213,7 @@ const LiveScreen: React.FC = () => {
         }
 
         .logo-box { 
-          width: 400px; /* לוגו מוגדל */
+          width: 400px; 
           flex-shrink: 0; 
           display: flex; 
           justify-content: center; 
@@ -260,7 +263,7 @@ const LiveScreen: React.FC = () => {
              <div className="total-label">סה"כ התחייבויות</div>
           </div>
 
-          {/* תרומה אחרונה - מורחקת וממורכזת */}
+          {/* תרומה אחרונה */}
           <div className="latest-donation-center">
             <AnimatePresence mode="wait">
               {donations[0] && (
@@ -280,7 +283,7 @@ const LiveScreen: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* לוגו מוגדל */}
+          {/* לוגו */}
           <div className="logo-box">
             {campaign.logoUrl && (
               <img src={campaign.logoUrl} className="logo-img" alt="logo" />
