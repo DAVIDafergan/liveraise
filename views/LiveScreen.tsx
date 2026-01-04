@@ -241,25 +241,33 @@ const LiveScreen: React.FC = () => {
         }
 
         .latest-donation-center {
-          text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center;
           width: 100%;
         }
 
+        /* עיצוב מוקטן משמעותית לתרומה האחרונה */
         .latest-name { 
-          font-size: clamp(2.5rem, 5vw, 4.5rem); 
-          font-weight: 950; 
+          font-size: clamp(1.4rem, 2.8vw, 2.2rem); 
+          font-weight: 900; 
           color: #ffffff; 
-          line-height: 1.1; 
-          text-shadow: 0 0 20px rgba(0,0,0,0.5);
+          line-height: 1.2; 
+          text-shadow: 0 0 10px rgba(0,0,0,0.5);
+          margin-bottom: 5px;
         }
 
-        .latest-amount { font-family: 'Rubik'; font-size: clamp(2rem, 4vw, 3.5rem); color: var(--neon-blue); font-weight: 900; margin-top: 10px; }
+        .latest-amount { 
+          font-family: 'Rubik'; 
+          font-size: clamp(1.2rem, 2.4vw, 1.8rem); 
+          color: var(--neon-blue); 
+          font-weight: 800; 
+          margin-top: 5px; 
+        }
         
         .gold-sparkle-element {
-          width: 70%; max-width: 350px; height: 4px;
+          width: 60%; max-width: 250px; height: 3px;
           background: var(--gold-shine); background-size: 200% auto;
           animation: shine-gold 3s linear infinite;
-          margin-top: 20px; border-radius: 10px;
+          margin-top: 15px; border-radius: 10px;
         }
 
         .logo-box { 
@@ -315,15 +323,15 @@ const LiveScreen: React.FC = () => {
               <div className="total-val">₪{totalRaised.toLocaleString()}</div>
           </div>
 
-          {/* תרומה אחרונה - מוקטנת וממורכזת */}
+          {/* תרומה אחרונה - מוקטנת משמעותית וממורכזת */}
           <div className="latest-donation-center">
             <AnimatePresence mode="wait">
               {donations[0] && (
                 <motion.div
                   key={donations[0].id || donations[0].fullName}
-                  initial={{ y: 20, opacity: 0 }}
+                  initial={{ y: 15, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -20, opacity: 0 }}
+                  exit={{ y: -15, opacity: 0 }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   className="flex flex-col items-center w-full"
                 >
