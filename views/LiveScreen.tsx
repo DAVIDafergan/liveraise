@@ -86,7 +86,7 @@ const LiveScreen: React.FC = () => {
           font-family: 'Frank Ruhl Libre', serif;
           color: white;
           position: relative;
-          overflow-y: auto;
+          overflow: hidden;
         }
 
         .live-container::before {
@@ -122,7 +122,6 @@ const LiveScreen: React.FC = () => {
           position: relative;
         }
 
-        /* התאמה למובייל */
         @media (max-width: 1024px) {
           .stage-container {
             flex-direction: column;
@@ -131,7 +130,6 @@ const LiveScreen: React.FC = () => {
           }
           .side-frame { order: 2; min-height: 400px; }
           .center-area { order: 1; flex: none; padding: 20px 0; }
-          .live-container { overflow-y: auto; }
         }
 
         .side-frame { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
@@ -183,17 +181,21 @@ const LiveScreen: React.FC = () => {
           border: 1px solid rgba(249, 217, 118, 0.2);
           border-radius: 12px; padding: 15px 5px; text-align: center;
           display: flex; flex-direction: column; justify-content: center;
-          box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
+        /* שמות ברשימה הצידית - נקיים ובולטים */
         .d-name { 
-          font-weight: 950; font-size: 1.4rem; 
-          color: var(--gold-solid);
+          font-weight: 900; 
+          font-size: 1.6rem; 
+          color: #ffffff; /* לבן נקי ללא צבע זהב שעלול לטשטש */
           margin-bottom: 4px; 
-          text-shadow: 0 2px 8px rgba(0,0,0,0.9);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          text-shadow: none; /* הסרת כל אפקט */
+          white-space: nowrap; 
+          overflow: hidden; 
+          text-overflow: ellipsis;
         }
-        .d-amount { font-family: 'Rubik'; color: #fff; font-weight: 800; font-size: 1.2rem; }
+
+        .d-amount { font-family: 'Rubik'; color: var(--gold-solid); font-weight: 800; font-size: 1.2rem; }
 
         .center-area { 
           flex: 1.5; 
@@ -219,12 +221,17 @@ const LiveScreen: React.FC = () => {
           text-align: center; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center;
           margin: 20px 0; width: 100%;
         }
+
+        /* שם התורם המרכזי - גדול, ברור וללא אפקטים */
         .latest-name { 
-          font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 950; 
-          color: var(--gold-solid);
+          font-size: clamp(2.5rem, 6vw, 4.2rem); 
+          font-weight: 950; 
+          color: #ffffff; /* לבן מוחלט */
           line-height: 1.1; 
-          text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+          text-shadow: none; /* ללא צללים או הילות */
+          filter: none;
         }
+
         .latest-amount { font-family: 'Rubik'; font-size: clamp(1.8rem, 4vw, 3rem); color: var(--neon-blue); font-weight: 900; margin-top: 6px; }
         
         .gold-sparkle-element {
